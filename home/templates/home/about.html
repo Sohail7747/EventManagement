@@ -1,0 +1,51 @@
+{% extends "home/public_base.html" %}
+
+{% block title %}{{ page.title|default:"About Us" }} | EventSphere{% endblock %}
+
+{% block content %}
+<section class="public-page section-space">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+                <div class="eyebrow"><span></span> OUR STORY</div>
+                <h1 class="section-heading">
+                    Every moment has a story.
+                    <em>Let's make yours extraordinary.</em>
+                </h1>
+
+                {% if page %}
+                    <div class="mt-4">{{ page.content|linebreaks }}</div>
+                {% else %}
+                    <p class="mt-4">
+                        EventSphere is designed to make discovering event
+                        services and curated packages easier. Whether you're
+                        planning a wedding, a family celebration, or a special
+                        gathering, we're here to help you explore your options.
+                    </p>
+                    <p>
+                        Our platform brings event listings, professional services,
+                        and thoughtfully assembled packages together in one place.
+                        Our goal is to make planning simpler so you can focus on
+                        the moments that matter.
+                    </p>
+                {% endif %}
+
+                <a href="{% url 'public-events' %}" class="btn btn-gold mt-3">
+                    Explore Events <i class="bi bi-arrow-up-right"></i>
+                </a>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="about-highlight">
+                    <i class="bi bi-stars"></i>
+                    <h2>Thoughtfully curated.</h2>
+                    <p>
+                        Discover events, explore services, and find packages
+                        that help bring your celebration to life.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

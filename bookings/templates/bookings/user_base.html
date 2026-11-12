@@ -1,0 +1,182 @@
+{% extends "home/public_base.html" %}
+{% load static %}
+
+{% block title %}My Account | EventSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'bookings/css/user_base.css' %}">
+{% block extra_user_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="profile-page-wrapper">
+    <div class="container">
+
+        <!-- Django System Messages -->
+        {% if messages %}
+            <div class="row mb-3">
+                <div class="col-12">
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+                            <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill text-success{% elif message.tags == 'error' %}bi-exclamation-triangle-fill text-danger{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <header class="account-page-intro">
+            <div>
+                <span class="account-page-eyebrow"><i class="bi bi-person-badge"></i> Customer workspace</span>
+                <h1>
+                    {% if active_page == "profile" %}Profile settings
+                    {% elif active_page == "bookings" %}Your bookings
+                    {% elif active_page == "packages" %}Your custom packages
+                    {% elif active_page == "favourites" %}Saved favorites
+                    {% else %}Your account{% endif %}
+                </h1>
+                <p>
+                    {% if active_page == "profile" %}Keep your contact details and account information up to date.
+                    {% elif active_page == "bookings" %}Track booking status, event details, and completion in one place.
+                    {% elif active_page == "packages" %}Review the packages you created and continue planning.
+                    {% elif active_page == "favourites" %}Your saved discoveries, ready when you are.
+                    {% else %}A clear overview of your plans, bookings, and saved items.{% endif %}
+                </p>
+            </div>
+            <div class="account-page-intro-action">
+                {% if active_page == "bookings" %}
+                    <a href="{% url 'public-packages' %}" class="btn btn-outline-gold">
+                        <i class="bi bi-search me-1"></i> Explore packages
+                    </a>
+                {% elif active_page == "packages" %}
+                    <a href="{% url 'package-selection' %}" class="btn btn-outline-gold">
+                        <i class="bi bi-plus-lg me-1"></i> Build a package
+                    </a>
+                {% elif active_page == "favourites" %}
+                    <a href="{% url 'public-packages' %}" class="btn btn-outline-gold">
+                        <i class="bi bi-heart me-1"></i> Find packages
+                    </a>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="row g-4 account-layout-row">
+
+            <!-- ============================================== -->
+            <!-- LEFT COLUMN: Profile Summary & Vertical Navigation -->
+            <!-- ============================================== -->
+            <div class="col-12 col-lg-3">
+                <div class="profile-sidebar-card">
+                    <div class="profile-sidebar-label"><i class="bi bi-grid-1x2-fill"></i> Account menu</div>
+
+                    <!-- Circular Avatar -->
+                    <div class="profile-avatar-wrapper">
+                        {% if profile_photo %}
+                            <img src="{{ profile_photo.url }}"
+                                 alt="{{ user_full_name|default:request.user.get_full_name|default:request.user.username }}"
+                                 class="profile-avatar-img">
+                        {% elif request.user.profile.profile_photo %}
+                            <img src="{{ request.user.profile.profile_photo.url }}"
+                                 alt="{{ request.user.get_full_name|default:request.user.username }}"
+                                 class="profile-avatar-img">
+                        {% else %}
+                            <div class="profile-avatar-placeholder">
+                                {{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- User Information -->
+                    <h3 class="profile-user-name">
+                        {{ user_full_name|default:request.user.get_full_name|default:request.user.username }}
+                    </h3>
+
+                    <div class="profile-contact-item">
+                        <i class="bi bi-telephone"></i>
+                        <span>
+                            {% if profile_phone %}{{ profile_phone }}
+                            {% elif request.user.profile and request.user.profile.phone %}{{ request.user.profile.phone }}
+                            {% else %}Not provided{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="profile-contact-item">
+                        <i class="bi bi-envelope"></i>
+                        <span>{{ request.user.email }}</span>
+                    </div>
+                    <div class="profile-account-status">
+                        <i class="bi bi-patch-check-fill"></i>
+                        <span>Customer account</span>
+                    </div>
+
+                    <!-- Vertical Menu List -->
+                    <ul class="profile-nav-list">
+                        <li>
+                            <a href="{% url 'user-profile' %}"
+                               class="profile-nav-link {% if active_page == 'profile' or request.resolver_match.url_name == 'user-profile' or request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                                <i class="bi bi-pencil-square"></i>
+                                <span>Edit Profile</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'my-bookings' %}"
+                               class="profile-nav-link {% if active_page == 'bookings' or request.resolver_match.url_name == 'my-bookings' or request.resolver_match.url_name == 'booking-detail' %}active{% endif %}">
+                                <i class="bi bi-journal-bookmark"></i>
+                                <span>Booking History</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'my-custom-packages' %}"
+                               class="profile-nav-link {% if active_page == 'packages' or request.resolver_match.url_name == 'my-custom-packages' %}active{% endif %}">
+                                <i class="bi bi-box-seam"></i>
+                                <span>My Packages</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'my-favourites' %}"
+                               class="profile-nav-link {% if active_page == 'favourites' or request.resolver_match.url_name == 'my-favourites' %}active{% endif %}">
+                                <i class="bi bi-heart"></i>
+                                <span>Saved Favorites</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <form method="post" action="{% url 'logout' %}" class="m-0 p-0">
+                                {% csrf_token %}
+                                <button type="submit" class="profile-nav-link logout-link">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Log Out</span>
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+
+                    <div class="profile-plan-prompt">
+                        <span class="profile-plan-icon"><i class="bi bi-stars"></i></span>
+                        <strong>Planning something special?</strong>
+                        <p>Build a package that fits your event and budget.</p>
+                        <a href="{% url 'package-selection' %}">
+                            Create a package <i class="bi bi-arrow-up-right"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- RIGHT COLUMN: Main Content Area -->
+            <!-- ============================================== -->
+            <div class="col-12 col-lg-9">
+                {% block user_content %}{% endblock %}
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

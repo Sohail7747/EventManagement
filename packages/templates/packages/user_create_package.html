@@ -1,0 +1,242 @@
+{% extends "home/public_base.html" %} {% load static %} {% block title %}Build
+Your Event Package | EventSphere{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'packages/css/user_create_package.css' %}">
+{% endblock %} {% block content %}
+<section class="public-page section-space package-finder">
+  <div class="container">
+    <div class="finder-hero">
+      <div class="finder-hero-copy">
+        <div class="eyebrow"><span></span> YOUR EVENT, YOUR WAY</div>
+        <h1>Make room for <em>moments</em>, not guesswork.</h1>
+        <p>
+          Build a package around your budget, compare real seller prices, and bring your event plans together in one place.
+        </p>
+      </div>
+      <aside class="finder-hero-card" aria-label="Package builder benefits">
+        <div class="finder-hero-card-top">
+          <span class="finder-hero-icon"><i class="bi bi-stars"></i></span>
+          <div>
+            <strong>A plan that feels like yours</strong>
+            <span>Thoughtful choices, all in one place</span>
+          </div>
+        </div>
+        <div class="finder-hero-promise"><i class="bi bi-check-circle-fill"></i><span>Seller prices, clearly shown</span></div>
+        <div class="finder-hero-promise"><i class="bi bi-check-circle-fill"></i><span>Options that stay within budget</span></div>
+        <div class="finder-hero-promise"><i class="bi bi-check-circle-fill"></i><span>Secure checkout when you’re ready</span></div>
+      </aside>
+    </div>
+
+    {% if messages %} {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">
+      {{ message }}
+    </div>
+    {% endfor %} {% endif %}
+
+    <div class="finder-progress" aria-label="Package building steps">
+      <div class="finder-progress-step" id="progress-budget">
+        <span class="finder-progress-number">1</span><span>Set your budget</span>
+      </div>
+      <div class="finder-progress-step" id="progress-services">
+        <span class="finder-progress-number">2</span><span>Choose services</span>
+      </div>
+      <div class="finder-progress-step" id="progress-date">
+        <span class="finder-progress-number">3</span><span>Check dates</span>
+      </div>
+    </div>
+
+    <div class="finder-steps">
+      <section class="finder-step" aria-labelledby="budget-step-title">
+        <div class="finder-step-heading">
+          <span class="finder-step-number">01</span>
+          <div>
+            <h2 id="budget-step-title">Set your budget</h2>
+            <p>Set the maximum amount you want to spend on services.</p>
+          </div>
+        </div>
+        <label class="finder-label" for="user-budget">Maximum service budget (₹)</label>
+        <div class="finder-input-group">
+          <span class="finder-input-prefix" aria-hidden="true">₹</span>
+          <input
+            class="finder-input"
+            type="number"
+            id="user-budget"
+            min="0.01"
+            max="999999999.99"
+            step="0.01"
+            inputmode="decimal"
+            placeholder="e.g. 50,000"
+            aria-describedby="budget-guidance"
+          />
+        </div>
+        <div class="finder-budget-note" id="budget-guidance">
+          <span><i class="bi bi-shield-check me-1"></i>Your service budget is your limit</span>
+          <strong id="budget-live-value">Set a budget</strong>
+        </div>
+        <div class="mt-3">
+          <label class="finder-label" for="guest-count">Number of guests</label>
+          <input
+            class="finder-input"
+            type="number"
+            id="guest-count"
+            min="1"
+            max="500"
+            step="1"
+            value="1"
+            data-guest-price="{{ guest_price }}"
+            required
+            inputmode="numeric"
+            aria-describedby="guest-count-guidance"
+          />
+          <p class="finder-help" id="guest-count-guidance">
+            A fixed fee of ₹150 is charged per guest and added to your package total.
+          </p>
+        </div>
+      </section>
+
+      <section class="finder-step" id="date-step" aria-labelledby="date-step-title">
+        <div class="finder-step-heading">
+          <span class="finder-step-number">03</span>
+          <div>
+            <h2 id="date-step-title">Choose your event date</h2>
+            <p>Check availability for your selected sellers before you book.</p>
+          </div>
+        </div>
+        <input
+          type="hidden"
+          id="event-date"
+          min="{{ today|date:'Y-m-d' }}"
+          value="{{ selected_date|date:'Y-m-d'|default:'' }}"
+        />
+        <div class="finder-calendar"
+             id="package-availability-calendar"
+             data-api-url="{% url 'package-builder-availability' %}"
+             data-min-date="{{ today|date:'Y-m-d' }}"
+             data-selected-date="{{ selected_date|date:'Y-m-d'|default:'' }}">
+          <div class="finder-calendar-header">
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="finder-calendar-previous" aria-label="Previous month">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <strong id="finder-calendar-month" aria-live="polite"></strong>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="finder-calendar-next" aria-label="Next month">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+          <div class="finder-calendar-grid" id="finder-calendar-grid" role="grid"></div>
+          <p class="small text-secondary mt-2 mb-0" id="finder-calendar-message" role="status" aria-live="polite">
+            Set your budget and select services to check availability.
+          </p>
+          <div class="finder-calendar-legend">
+            <span><i></i> Available</span>
+            <span><i class="legend-unavailable"></i> Unavailable</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="finder-step" id="services-step" aria-labelledby="services-step-title">
+        <div class="finder-step-heading">
+          <span class="finder-step-number">02</span>
+          <div>
+            <h2 id="services-step-title">Choose your services</h2>
+            <p>Choose the services you’d like included in your event.</p>
+          </div>
+        </div>
+        <span class="finder-label" id="services-label">Services you need</span>
+        <div class="service-picker">
+          <button
+            type="button"
+            class="service-toggle"
+            id="service-picker-toggle"
+            aria-expanded="false"
+            aria-controls="service-picker-menu"
+          >
+            <span id="service-picker-label">Select one or more services</span>
+            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div
+            class="service-menu"
+            id="service-picker-menu"
+            aria-labelledby="services-label"
+            hidden
+          >
+            {% for service in services %}
+            <label class="service-option">
+              <input
+                type="checkbox"
+                class="service-checkbox"
+                value="{{ service.category }}"
+                data-service-name="{{ service.name }}"
+              />
+              <span class="service-option-title">{{ service.name }}</span>
+              <span class="service-option-price" data-service-category="{{ service.category }}"></span>
+            </label>
+            {% empty %}
+            <p class="finder-message mb-0">
+              No seller services are available right now.
+            </p>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="finder-selected-services" id="selected-service-chips" aria-live="polite">
+          <span class="finder-selected-empty">Your chosen services will appear here.</span>
+        </div>
+      </section>
+    </div>
+
+    <section
+      class="finder-results"
+      id="offer-results"
+      aria-labelledby="offer-results-heading"
+      hidden
+    >
+      <div class="finder-results-heading">
+        <div>
+          <div class="finder-results-title-row">
+            <span class="finder-results-icon"><i class="bi bi-gem"></i></span>
+            <div>
+              <h2 class="finder-heading" id="offer-results-heading">Your package options</h2>
+              <p class="finder-subtitle" id="offer-stage-description"></p>
+            </div>
+          </div>
+        </div>
+        <span class="finder-count" id="offer-count" hidden></span>
+      </div>
+      <div class="finder-budget-summary">
+        <span><i class="bi bi-check-circle-fill me-1"></i> Seller-priced options within your budget</span>
+        <strong id="results-budget-value">Budget not set</strong>
+      </div>
+      <p
+        class="finder-message"
+        id="offer-message"
+        role="status"
+        aria-live="polite"
+      >
+        Start by setting your budget, choosing a date, and selecting a service.
+      </p>
+      <div class="package-name-field" id="package-name-wrap" hidden>
+        <label class="finder-label" for="package-name"
+          >Give your package a name
+          <span class="text-secondary fw-normal">(optional)</span></label
+        >
+        <input
+          class="finder-input"
+          id="package-name"
+          maxlength="200"
+          placeholder="e.g. Our celebration"
+        />
+        <p class="finder-help">Make it memorable, or leave blank to use “My package”.</p>
+      </div>
+      <div class="offer-grid" id="offer-grid"></div>
+    </section>
+
+    <form id="csrf-token-form" hidden>{% csrf_token %}</form>
+    {{ service_offerings|json_script:"service-offerings-data" }}
+    <input
+      type="hidden"
+      id="create-package-url"
+      value="{% url 'create-event-package' %}"
+    />
+  </div>
+</section>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'packages/js/package_finder.js' %}" defer></script>
+{% endblock %}

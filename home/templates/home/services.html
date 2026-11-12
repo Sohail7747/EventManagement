@@ -1,0 +1,47 @@
+{% extends "home/public_base.html" %}
+
+{% block title %}Event Services | EventSphere{% endblock %}
+
+{% block content %}
+<section class="public-page section-space">
+    <div class="container">
+        <div class="eyebrow"><span></span> THE PERFECT DETAILS</div>
+        <h1 class="section-heading">Our Event <em>Services</em></h1>
+        <p class="section-subtitle mb-5">
+            Find the services that help make your celebration unforgettable.
+        </p>
+
+        <div class="row g-4">
+            {% for service in services %}
+            <div class="col-md-6 col-lg-4">
+                <article class="service-card h-100" id="service-{{ service.pk }}">
+                    <div class="service-image">
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                        {% else %}
+                            <div class="image-placeholder service-placeholder">
+                                <i class="bi bi-stars"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="service-body">
+                        <span class="service-kicker">EVENT SERVICE</span>
+                        <h3>{{ service.name }}</h3>
+                        <p>{{ service.description|truncatewords:25 }}</p>
+                    </div>
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-stars"></i>
+                    <h3>Services coming soon</h3>
+                    <p>Our sellers' services will appear here.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

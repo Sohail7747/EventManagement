@@ -1,0 +1,45 @@
+.package-summary {
+        background: #fff;
+        border: 1px solid #eceef4;
+        border-radius: 15px;
+        padding: 22px 25px;
+        margin-bottom: 23px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .summary-label { display: block; color: #778197; font-size: 13px; margin-bottom: 9px; }
+    .package-summary strong { font-size: 29px; font-weight: 760; }
+    .summary-icon {
+        display: grid; place-items: center; width: 48px; height: 48px;
+        border-radius: 13px; background: #eeebff; color: #6658d3; font-size: 22px;
+    }
+    .package-table thead th {
+        color: #778197; background: #fafbfe; font-size: 11px;
+        text-transform: uppercase; letter-spacing: .5px; padding: 15px 18px;
+        white-space: nowrap; border-bottom-color: #eceef4;
+    }
+    .package-table tbody td { padding: 17px 18px; border-bottom-color: #f0f1f6; }
+    .package-title { font-weight: 700; font-size: 13px; margin-bottom: 5px; }
+    .package-description { color: #778197; font-size: 12px; max-width: 220px; }
+    .event-name { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .service-count {
+        display: inline-block; background: #f0eeff; color: #6658d3;
+        padding: 6px 9px; border-radius: 7px; font-size: 11px; white-space: nowrap;
+    }
+    .package-price { color: #23845b; white-space: nowrap; }
+    .action-buttons { display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+    .action-buttons form { margin: 0; }
+    .action-btn {
+        display: inline-grid; place-items: center; width: 33px; height: 33px;
+        border: 1px solid #e8eaf2; border-radius: 8px; background: #fff;
+        text-decoration: none; font-size: 14px; cursor: pointer;
+    }
+    .view-btn { color: #6658d3; }
+    .edit-btn { color: #287fc0; }
+    .delete-btn { color: #d54e5c; }
+    .action-btn:hover { background: #f5f6fb; }
+    @media(max-width: 700px) {
+        .package-summary { padding: 17px; }
+        .panel-header { flex-wrap: wrap; }
+    }

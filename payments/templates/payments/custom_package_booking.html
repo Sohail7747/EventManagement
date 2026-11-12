@@ -1,0 +1,157 @@
+{% extends "home/public_base.html" %}
+{% load static %}
+
+{% block title %}Book Custom Package | EventSphere{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'payments/css/custom_package_booking.css' %}">
+<section class="public-page section-space">
+    <div class="container custom-checkout">
+        <div class="checkout-header">
+            <div class="eyebrow"><span></span> SECURE YOUR PACKAGE</div>
+            <h1 class="section-heading mb-2">{{ package.package_title|default:"My package" }}</h1>
+            <p class="section-subtitle mb-0">
+                Review your services, add your event and contact details, then choose a payment method.
+            </p>
+        </div>
+        <div class="checkout-layout">
+            <aside class="checkout-summary">
+                <div class="checkout-summary-heading">
+                    <span class="small text-secondary text-uppercase fw-semibold">Booking summary</span>
+                    <h2 class="h5 mt-1 mb-0">{{ package.package_title|default:"My package" }}</h2>
+                    <span class="small text-secondary">{{ package.event_date|date:"l, d M Y" }}</span>
+                </div>
+                <div class="checkout-summary-body">
+                    <div class="checkout-service-list mb-4">
+                        {% for item in package.package_services.all %}
+                            <article class="checkout-service">
+                                <div class="checkout-service-image">
+                                    {% if item.service.image %}
+                                        <img src="{{ item.service.image.url }}" alt="{{ item.service.name }}" loading="lazy">
+                                    {% else %}
+                                        <div class="checkout-service-placeholder" aria-hidden="true"><i class="bi bi-stars"></i></div>
+                                    {% endif %}
+                                </div>
+                                <div class="checkout-service-details">
+                                    <strong>{{ item.service.name }}</strong>
+                                    <span>
+                                        {% if item.seller %}
+                                            {{ item.seller.business_name }}
+                                        {% elif item.service.seller %}
+                                            {{ item.service.seller.business_name }}
+                                        {% else %}
+                                            Seller
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <span class="checkout-service-price">₹{{ item.selected_price|floatformat:2 }}</span>
+                            </article>
+                        {% empty %}
+                            <p class="text-secondary small mb-0">No services are included in this package.</p>
+                        {% endfor %}
+                    </div>
+                    <div class="d-flex justify-content-between gap-3 mb-3">
+                        <span class="text-secondary">Selected services</span>
+                        <strong>₹{{ package.total_cost|floatformat:2 }}</strong>
+                    </div>
+                    <div class="checkout-guest-fee">
+                        <span class="text-secondary">
+                            Guest fee (₹{{ guest_price|floatformat:2 }} per guest ×
+                            <span id="summaryGuestCount">{{ guest_count }}</span>)
+                        </span>
+                        <strong id="summaryGuestPrice">₹{{ guest_total|floatformat:2 }}</strong>
+                    </div>
+                    <div class="checkout-total">
+                        <strong>Total due now</strong>
+                        <strong class="fs-5" id="summaryTotal">₹{{ total_price|floatformat:2 }}</strong>
+                    </div>
+                    <p class="small text-secondary mt-3 mb-0">
+                        A fixed fee of ₹{{ guest_price|floatformat:2 }} is charged for each guest. Service prices match the seller rates saved with your package.
+                    </p>
+                </div>
+            </aside>
+            <div class="checkout-panel">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="post" id="customPackageBookingForm">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+                {{ form.booking_date.as_hidden }}
+                {% for error in form.booking_date.errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+                {% if form.errors and not form.booking_date.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        Please correct the highlighted booking details before continuing.
+                    </div>
+                {% endif %}
+                <section class="mb-4">
+                    <h2 class="checkout-step"><span class="checkout-step-number">1</span> Event details</h2>
+                    <div class="row g-3">
+                        <div class="col-md-6 col-xl-4">
+                            <span class="form-label d-block fw-semibold">Event date</span>
+                            <div class="form-control bg-light">{{ package.event_date|date:"d M Y" }}</div>
+                        </div>
+                        <div class="col-md-6 col-xl-4">
+                            <label class="form-label fw-semibold" for="{{ form.booking_end_date.id_for_label }}">End date</label>
+                            {{ form.booking_end_date }}
+                            {% for error in form.booking_end_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </section>
+                <section class="mb-4">
+                    <h2 class="checkout-step"><span class="checkout-step-number">2</span> Contact information</h2>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="{{ form.customer_name.id_for_label }}">Full name</label>
+                        {{ form.customer_name }}
+                        {% for error in form.customer_name.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="{{ form.customer_email.id_for_label }}">Email</label>
+                        {{ form.customer_email }}
+                        {% for error in form.customer_email.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" for="{{ form.customer_phone.id_for_label }}">Phone</label>
+                        {{ form.customer_phone }}
+                        {% for error in form.customer_phone.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" for="{{ form.customer_notes.id_for_label }}">Notes for sellers (optional)</label>
+                        {{ form.customer_notes }}
+                        {% for error in form.customer_notes.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+                </section>
+                <button class="btn btn-gold w-100 checkout-pay-button mt-2"
+                        type="{% if payment_options %}button{% else %}submit{% endif %}"
+                        id="customPaymentButton">
+                    Pay ₹{{ total_price|floatformat:2 }} securely
+                </button>
+                <div id="customPaymentError" class="alert alert-danger mt-3 d-none"
+                     role="alert" aria-live="assertive"></div>
+                <div id="customPaymentStatus" class="small text-secondary mt-2"
+                     role="status" aria-live="polite"></div>
+                <div class="checkout-trust mt-3">
+                    <span><i class="bi bi-shield-lock me-1"></i> Secure checkout by Razorpay</span>
+                    <span><i class="bi bi-check-circle me-1"></i> Payment verified before booking confirmation</span>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if payment_options %}
+    {{ payment_options|json_script:"razorpay-options" }}
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="{% static 'payments/js/custom_package_booking.js' %}"></script>
+{% endif %}
+{% endblock %}

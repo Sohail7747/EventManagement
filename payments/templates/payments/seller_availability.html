@@ -1,0 +1,74 @@
+{% extends "sellers/seller_base.html" %}
+
+{% block title %}Availability | EventSphere{% endblock %}
+{% block page_heading %}Availability calendar{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <section class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h1 class="h4 mb-2">Manage unavailable dates</h1>
+                    <p class="text-secondary">Block a full day when you can’t accept bookings. Existing bookings cannot be blocked.</p>
+                    <form method="post" class="row g-3">
+                        {% csrf_token %}
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="availability-date">Date</label>
+                            <input class="form-control" id="availability-date" type="date" name="date" min="{{ today|date:'Y-m-d' }}" required>
+                        </div>
+                        <div class="col-12 d-flex gap-2">
+                            <button class="btn btn-outline-danger" type="submit" name="action" value="block">Block date</button>
+                            <button class="btn btn-outline-success" type="submit" name="action" value="unblock">Make available</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-lg-7">
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h5">Upcoming bookings</h2>
+                    <div class="list-group list-group-flush">
+                        {% for reservation in reserved_dates %}
+                            <div class="list-group-item px-0 d-flex justify-content-between gap-3">
+                                <span>{{ reservation.date|date:"D, d M Y" }}</span>
+                                <span class="badge text-bg-primary">{% if reservation.booking %}Booked{% else %}Checkout hold{% endif %}</span>
+                            </div>
+                        {% empty %}
+                            <p class="text-secondary mb-0">No dates are reserved yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="h5">Blocked dates</h2>
+                    <div class="list-group list-group-flush">
+                        {% for unavailable in unavailable_dates %}
+                            <div class="list-group-item px-0 d-flex justify-content-between align-items-center gap-3">
+                                <span>{{ unavailable.date|date:"D, d M Y" }}</span>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="date" value="{{ unavailable.date|date:'Y-m-d' }}">
+                                    <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="unblock">Make available</button>
+                                </form>
+                            </div>
+                        {% empty %}
+                            <p class="text-secondary mb-0">You have no upcoming blocked dates.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

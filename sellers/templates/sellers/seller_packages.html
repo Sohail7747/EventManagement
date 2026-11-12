@@ -1,0 +1,126 @@
+ 
+{% extends "sellers/seller_base.html" %}
+{% load static %}
+
+{% block title %}My Packages | EventSphere{% endblock %}
+{% block page_heading %}My Packages{% endblock %}
+{% block packages_active %}active{% endblock %}
+
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <h1>My Packages</h1>
+        <p>Combine your events and services into packages for your customers.</p>
+    </div>
+    <a href="{% url 'seller-create-package' %}" class="primary-btn">
+        <i class="bi bi-plus-lg"></i> Create Package
+    </a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="package-summary">
+    <div>
+        <span class="summary-label">Total Packages</span>
+        <strong>{{ packages|length }}</strong>
+    </div>
+    <div class="summary-icon"><i class="bi bi-box-seam"></i></div>
+</div>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2><i class="bi bi-collection me-2"></i>All Packages</h2>
+        <span class="text-muted small">{{ packages|length }} package{{ packages|length|pluralize }}</span>
+    </div>
+
+    {% if packages %}
+        <div class="table-responsive">
+            <table class="table align-middle package-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Package</th>
+                        <th>Event</th>
+                        <th>Services</th>
+                        <th>Total Price</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for package in packages %}
+                        <tr>
+                            <td>
+                                <div class="package-title">{{ package.title }}</div>
+                                <div class="package-description">
+                                    {{ package.description|truncatechars:65 }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="event-name">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    {{ package.event.title }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="service-count">
+                                    {{ package.package_items.count }}
+                                    service{{ package.package_items.count|pluralize }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong class="package-price">₹{{ package.total_price|floatformat:2 }}</strong>
+                            </td>
+                            <td>
+                                <span class="text-muted small">
+                                    {{ package.created_at|date:"d M Y" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'seller-view-package' package.pk %}"
+                                       class="action-btn view-btn" title="View package"
+                                       aria-label="View package">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'seller-edit-package' package.pk %}"
+                                       class="action-btn edit-btn" title="Edit package"
+                                       aria-label="Edit package">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <form method="post"
+                                          action="{% url 'seller-delete-package' package.pk %}"
+                                          onsubmit="return confirm('Are you sure you want to delete this package?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-btn delete-btn"
+                                                title="Delete package" aria-label="Delete package">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-box-seam"></i></div>
+            <h3>No packages yet</h3>
+            <p>Create your first package by combining one of your events with your services.</p>
+            <a href="{% url 'seller-create-package' %}" class="primary-btn">
+                <i class="bi bi-plus-lg"></i> Create Your First Package
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+<link rel="stylesheet" href="{% static 'sellers/css/seller_packages.css' %}">
+{% endblock %}

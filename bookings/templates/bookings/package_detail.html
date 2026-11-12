@@ -1,0 +1,237 @@
+{% extends "home/public_base.html" %}
+{% load static %} {% block title %}{{ package.title }} |
+EventSphere{% endblock %} {% block content %}
+<link rel="stylesheet" href="{% static 'bookings/css/package_detail.css' %}">
+
+<section class="public-page section-space">
+  <div class="container package-detail-page">
+    <div class="package-detail-hero mb-4">
+      <div class="row g-0 align-items-stretch">
+        <div class="col-lg-7">
+          {% if package.event.image %}
+          <img
+            src="{{ package.event.image.url }}"
+            alt="{{ package.event.title }}"
+          />
+          {% else %}
+          <div
+            class="d-flex align-items-center justify-content-center h-100"
+            style="min-height: 300px"
+          >
+            <i class="bi bi-calendar-heart display-1 text-white-50"></i>
+          </div>
+          {% endif %}
+        </div>
+        <div
+          class="col-lg-5 p-4 p-md-5 d-flex flex-column justify-content-center"
+        >
+          <div class="eyebrow text-white-50">
+            <span></span> CURATED EVENT PACKAGE
+          </div>
+          <span
+            class="badge rounded-pill align-self-start bg-light text-dark mb-3"
+          >
+            {{ package.event.title }}
+          </span>
+          <h1 class="display-6 fw-bold">{{ package.title }}</h1>
+          <div class="d-flex align-items-center gap-2 mb-3">
+            {% if package.rating_average %}
+            <span class="text-warning" aria-label="Average rating"
+              >{{ package.rating_average|floatformat:1 }} ★</span
+            >
+            <span class="small text-white-50"
+              >({{ package.review_count }} review{{
+              package.review_count|pluralize }})</span
+            >
+            {% else %}
+            <span class="small text-white-50">Not yet reviewed</span>
+            {% endif %}
+          </div>
+          <p class="text-white-50 mb-4">{{ package.description }}</p>
+          <div class="d-flex align-items-end gap-2">
+            <strong class="fs-2">
+              ₹{{ package.total_price|floatformat:2 }}
+            </strong>
+            <span class="text-white-50 pb-2">package price</span>
+          </div>
+          <span class="small text-white-50 mt-1">
+            Event guest charge: ₹{{ guest_price|floatformat:2 }} per guest
+          </span>
+        </div>
+      </div>
+      {% include "home/_package_favourite_button.html" %}
+    </div>
+
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-8">
+        <section class="package-detail-card p-4 p-md-5 mb-4">
+          <div
+            class="d-flex justify-content-between align-items-start gap-3 mb-4"
+          >
+            <div>
+              <span class="text-uppercase small text-secondary fw-semibold">
+                What’s included
+              </span>
+              <h2 class="h3 mt-2 mb-0">Services in this package</h2>
+            </div>
+            <span class="badge rounded-pill text-bg-light border">
+              {{ package.package_items.count }} services
+            </span>
+          </div>
+
+          <div class="row g-3">
+            {% for item in package.package_items.all %}
+            <div class="col-md-6">
+              <article class="h-100 rounded-4 border overflow-hidden">
+                {% if item.service.image %}
+                <img
+                  src="{{ item.service.image.url }}"
+                  alt="{{ item.service.name }}"
+                  class="package-service-image"
+                />
+                {% else %}
+                <div
+                  class="package-service-image d-flex align-items-center justify-content-center bg-light"
+                >
+                  <i class="bi bi-stars fs-1 text-secondary"></i>
+                </div>
+                {% endif %}
+                <div class="p-3">
+                  <div
+                    class="d-flex justify-content-between align-items-start gap-3"
+                  >
+                    <h3 class="h5 mb-2">{{ item.service.name }}</h3>
+                    <span class="fw-semibold text-nowrap">
+                      ₹{{ item.selected_price|floatformat:2 }}
+                    </span>
+                  </div>
+                  <p class="small text-secondary mb-2">
+                    {{ item.service.description }}
+                  </p>
+                  {% if item.service.seller %}
+                  <span class="small text-secondary">
+                    <i class="bi bi-shop me-1"></i>
+                    {{ item.service.seller.business_name }}
+                  </span>
+                  {% endif %}
+                </div>
+              </article>
+            </div>
+            {% empty %}
+            <div class="col-12">
+              <p class="text-secondary mb-0">
+                Service details will be available soon.
+              </p>
+            </div>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section
+          class="package-detail-card p-4 p-md-5 mb-4"
+          aria-labelledby="package-reviews-heading"
+        >
+          <div
+            class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"
+          >
+            <div>
+              <span class="text-uppercase small text-secondary fw-semibold"
+                >Verified customers</span
+              >
+              <h2 class="h3 mt-2 mb-0" id="package-reviews-heading">
+                Reviews &amp; ratings
+              </h2>
+            </div>
+            {% if package.rating_average %}
+            <span class="badge rounded-pill text-bg-warning fs-6"
+              >{{ package.rating_average|floatformat:1 }} ★</span
+            >
+            {% endif %}
+          </div>
+          {% for review in reviews %}
+          <article class="border-top py-3">
+            <div class="d-flex justify-content-between gap-3">
+              <strong
+                >{{ review.user.get_full_name|default:review.user.username
+                }}</strong
+              >
+              <span
+                class="text-warning"
+                aria-label="{{ review.rating }} out of 5 stars"
+                >{{ review.rating }} ★</span
+              >
+            </div>
+            <p class="small text-secondary mt-1 mb-1">
+              {{ review.created_at|date:"d M Y" }} · Verified booking
+            </p>
+            {% if review.comment %}
+            <p class="mb-0">{{ review.comment|linebreaksbr }}</p>
+            {% endif %}
+          </article>
+          {% empty %}
+          <p class="text-secondary mb-0">
+            No reviews yet. Complete a booking to be the first to review this
+            package.
+          </p>
+          {% endfor %}
+        </section>
+      </div>
+
+      <div class="col-lg-4">
+        <aside class="package-detail-card package-detail-summary p-4">
+          <span class="text-uppercase small text-secondary fw-semibold">
+            Package provider
+          </span>
+          <h2 class="h4 mt-2">{{ package.seller.business_name }}</h2>
+          {% if package.seller.phone %}
+          <p class="mb-2">
+            <i class="bi bi-telephone text-secondary me-2"></i>
+            <a href="tel:{{ package.seller.phone }}">
+              {{ package.seller.phone }}
+            </a>
+          </p>
+          {% endif %} {% if package.seller.user.email %}
+          <p class="mb-2">
+            <i class="bi bi-envelope text-secondary me-2"></i>
+            <a href="mailto:{{ package.seller.user.email }}">
+              {{ package.seller.user.email }}
+            </a>
+          </p>
+          {% endif %} {% if package.seller.address %}
+          <p class="text-secondary small mb-0">
+            <i class="bi bi-geo-alt me-2"></i>
+            {{ package.seller.address|linebreaksbr }}
+          </p>
+          {% endif %}
+
+          <hr class="my-4" />
+          <div class="d-flex justify-content-between mb-2">
+            <span>Package services</span>
+            <strong>₹{{ package.total_price|floatformat:2 }}</strong>
+          </div>
+          <div class="d-flex justify-content-between mb-3">
+            <span>Guest charge</span>
+            <strong>₹{{ guest_price|floatformat:2 }} / guest</strong>
+          </div>
+          <p class="small text-secondary">
+            Final total includes the package price plus ₹150 for each guest.
+          </p>
+          <a
+            href="{% url 'package-booking' package.pk %}{% if request.GET.booking_date %}?booking_date={{ request.GET.booking_date|urlencode }}{% endif %}"
+            class="btn btn-gold btn-lg w-100"
+          >
+            Continue to booking
+            <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+          <a
+            href="{% url 'public-packages' %}"
+            class="btn btn-link text-secondary w-100 mt-2"
+          >
+            Back to all packages
+          </a>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

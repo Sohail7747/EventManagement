@@ -1,0 +1,91 @@
+
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Manage Users | EventPro{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <h2>Manage Users</h2>
+        <p>View and manage registered accounts.</p>
+    </div>
+
+    <button class="btn btn-primary" id="addUserBtn" type="button">
+       + Add User
+    </button>
+</div>
+
+<div id="message" class="alert d-none"></div>
+
+<div class="welcome-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                 <tr>
+                     <th>ID</th>
+                     <th>Full Name</th>
+                     <th>Email</th>
+                     <th>Phone</th>
+                     <th>Role</th>
+                     <th>Actions</th>
+                 </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                 <tr><td colspan="6" class="text-center">Loading users...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<div id="userFormContainer" class="welcome-card mt-4" style="display: none;">
+    <h4 id="formTitle">Add User</h4>
+
+    <form id="userForm">
+        {% csrf_token %}
+
+        <input type="hidden" id="user_id">
+
+        <div class="mb-3">
+            <label for="full_name" class="form-label">Full Name</label>
+            <input type="text" id="full_name" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="user_email" class="form-label">Email</label>
+            <input type="email" id="user_email" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="user_phone" class="form-label">Phone Number</label>
+            <input
+                type="tel"
+                id="user_phone"
+                class="form-control"
+                maxlength="15"
+                placeholder="Enter phone number"
+            >
+       </div>
+
+        <div class="mb-3">
+            <label for="user_password" class="form-label">Password</label>
+            <input type="password" id="user_password"
+                   class="form-control" minlength="8" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Save User</button>
+        <button type="button" id="cancelUserBtn" class="btn btn-secondary">
+            Cancel
+        </button>
+    </form>
+</div>
+
+
+
+<script src="{% static 'dashboard/js/users.js' %}"></script>
+
+
+
+{% endblock %}

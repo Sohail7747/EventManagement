@@ -1,0 +1,104 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ service.name }} | EventPro{% endblock %}
+
+{% block content %}
+
+<div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2>Service Details</h2>
+        <p>View the complete service information.</p>
+    </div>
+
+    <a href="{% url 'admin-services' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Services
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+
+        <div class="row g-4">
+
+            <!-- Service Image -->
+            <div class="col-lg-5">
+                <h6 class="fw-semibold mb-3">Service Image</h6>
+
+                {% if service.image %}
+                    <img src="{{ service.image.url }}"
+                         alt="{{ service.name }}"
+                         class="img-fluid rounded border"
+                         style="width: 100%; max-height: 350px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light text-secondary rounded d-flex align-items-center justify-content-center"
+                         style="min-height: 260px;">
+                        <div class="text-center">
+                            <i class="bi bi-tools" style="font-size: 3rem;"></i>
+                            <p class="mb-0 mt-2">No image uploaded</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Service Details -->
+            <div class="col-lg-7">
+
+                <h3 class="fw-bold mb-3">{{ service.name }}</h3>
+
+                <div class="mb-4">
+                    <span class="text-muted d-block mb-1">Pricing</span>
+                    <p class="mb-0">
+                        Sellers set the price for this service in each package.
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <span class="text-muted d-block mb-1">Seller</span>
+
+                    {% if service.seller %}
+                        <p class="fw-semibold mb-0">
+                            {{ service.seller.business_name }}
+                        </p>
+                    {% else %}
+                        <p class="text-muted mb-0">Unassigned</p>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <span class="text-muted d-block mb-2">Description</span>
+
+                    <div class="p-3 bg-light rounded"
+                         style="white-space: pre-line;">
+                        {{ service.description|default:"No description available." }}
+                    </div>
+                </div>
+
+                {% if service.created_at %}
+                    <div class="mb-4">
+                        <span class="text-muted d-block mb-1">Created On</span>
+                        <p class="mb-0">
+                            {{ service.created_at|date:"d M Y, h:i A" }}
+                        </p>
+                    </div>
+                {% endif %}
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'service-edit' service.pk %}"
+                       class="btn btn-primary">
+                        <i class="bi bi-pencil-square"></i> Edit Service
+                    </a>
+
+                    <a href="{% url 'admin-services' %}"
+                       class="btn btn-outline-secondary">
+                        Back to Services
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ page_title|default:"Create Service" }} | EventPro{% endblock %}
+
+{% block content %}
+
+<div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2>{% if editing_service %}Edit Service{% else %}Create Service{% endif %}</h2>
+        <p>
+            {% if editing_service %}
+                Update service details and image.
+            {% else %}
+                Create a new service for sellers.
+            {% endif %}
+        </p>
+    </div>
+
+    <a href="{% url 'admin-services' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Services
+    </a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close"
+                    data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="mb-4">
+
+                    <label for="{{ field.id_for_label }}"
+                           class="form-label fw-semibold">
+                        {{ field.label }}
+
+                        {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                        {% endif %}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+
+                    {% for error in field.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ error }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+            {% endfor %}
+
+            <p class="form-text mb-4">
+                Sellers set the price for each service when they add it to a package.
+            </p>
+
+            {% if editing_service and editing_service.image %}
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Current Service Image</label>
+
+                    <div>
+                        <img src="{{ editing_service.image.url }}"
+                             alt="{{ editing_service.name }}"
+                             class="img-thumbnail rounded"
+                             style="width: 220px; height: 160px; object-fit: cover;">
+                    </div>
+
+                    <p class="text-muted small mt-2 mb-0">
+                        Choose a new image above if you want to replace this one.
+                    </p>
+                </div>
+            {% endif %}
+
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i>
+                    {% if editing_service %}Update Service{% else %}Create Service{% endif %}
+                </button>
+
+                <a href="{% url 'admin-services' %}"
+                   class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+{% endblock %}

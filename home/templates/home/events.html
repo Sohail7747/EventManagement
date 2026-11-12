@@ -1,0 +1,48 @@
+{% extends "home/public_base.html" %}
+
+{% block title %}Explore Events | EventSphere{% endblock %}
+
+{% block content %}
+<section class="public-page section-space">
+    <div class="container">
+        <div class="eyebrow"><span></span> WHAT'S HAPPENING</div>
+        <h1 class="section-heading">Discover <em>Events</em></h1>
+        <p class="section-subtitle mb-5">
+            Explore celebrations and events listed by our event professionals.
+        </p>
+
+        <div class="row g-4">
+            {% for event in events %}
+            <div class="col-md-6 col-lg-4">
+                <article class="listing-card h-100">
+                    <div class="listing-image">
+                        {% if event.image %}
+                            <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                        {% else %}
+                            <div class="image-placeholder event-placeholder">
+                                <i class="bi bi-calendar-heart"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="listing-content">
+                        <h3>{{ event.title }}</h3>
+                        <p class="card-description">
+                            {{ event.description|truncatewords:25 }}
+                        </p>
+                    </div>
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-calendar-heart"></i>
+                    <h3>No events available yet</h3>
+                    <p>New events will appear here when they are listed.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

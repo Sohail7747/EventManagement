@@ -1,0 +1,37 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ page.title }} | EventSphere Admin{% endblock %}
+{% block page_heading %}Static Page Details{% endblock %}
+
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <h1>{{ page.title }}</h1>
+        <p>View this static page's details and content.</p>
+    </div>
+    <a href="{% url 'admin-static-pages' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to Static Pages
+    </a>
+</div>
+
+<section class="panel">
+    <div class="panel-header">
+        <h2><i class="bi bi-file-earmark-text me-2 text-muted"></i>Page Details</h2>
+        <a href="{% url 'static-page-edit' page.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Edit Page
+        </a>
+    </div>
+    <div class="p-4">
+        <dl class="row mb-4">
+            <dt class="col-sm-3">Title</dt>
+            <dd class="col-sm-9">{{ page.title }}</dd>
+            <dt class="col-sm-3">Slug</dt>
+            <dd class="col-sm-9"><code>{{ page.slug }}</code></dd>
+            <dt class="col-sm-3">Last updated</dt>
+            <dd class="col-sm-9">{{ page.updated_at|date:"d M Y, h:i A" }}</dd>
+        </dl>
+        <h5 class="fw-bold">Content</h5>
+        <div class="border rounded p-3 bg-light" style="white-space: pre-wrap;">{{ page.content }}</div>
+    </div>
+</section>
+{% endblock %}

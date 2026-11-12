@@ -1,0 +1,269 @@
+{% extends "bookings/user_base.html" %}
+
+{% block title %}My Bookings | EventSphere{% endblock %}
+
+{% block user_content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="page-heading">My Bookings</h1>
+        <p class="page-description mb-0">
+            View your booking history and check the latest updates.
+        </p>
+    </div>
+
+    <a href="{% url 'public-events' %}" class="btn btn-gold">
+        <i class="bi bi-plus-lg me-1"></i> New Booking
+    </a>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+
+    <div class="col-6 col-xl-3">
+        <div class="user-card">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <div class="stat-label">Total</div>
+                    <div class="stat-number">{{ total_bookings|default:"0" }}</div>
+                </div>
+                <div class="stat-icon">
+                    <i class="bi bi-calendar2-week"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="user-card">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-number">{{ pending_bookings|default:"0" }}</div>
+                </div>
+                <div class="stat-icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="user-card">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <div class="stat-label">Confirmed</div>
+                    <div class="stat-number">{{ confirmed_bookings|default:"0" }}</div>
+                </div>
+                <div class="stat-icon">
+                    <i class="bi bi-patch-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-xl-3">
+        <div class="user-card">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                    <div class="stat-label">Cancelled</div>
+                    <div class="stat-number">{{ cancelled_bookings|default:"0" }}</div>
+                </div>
+                <div class="stat-icon">
+                    <i class="bi bi-calendar2-x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Booking history -->
+<div class="user-card user-card-main mb-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="section-title mb-1">Booking History</h2>
+            <p class="small text-secondary mb-0">
+                Your booking requests in one place.
+            </p>
+        </div>
+
+        <form method="get" class="d-flex flex-wrap gap-2">
+            <select name="status"
+                    class="form-select form-select-sm"
+                    style="min-width: 155px; border-color: var(--border);"
+                    aria-label="Filter bookings by status">
+                <option value="">All statuses</option>
+                <option value="PENDING"
+                    {% if selected_status == "PENDING" %}selected{% endif %}>
+                    Pending
+                </option>
+                <option value="CONFIRMED"
+                    {% if selected_status == "CONFIRMED" %}selected{% endif %}>
+                    Confirmed
+                </option>
+                <option value="REJECTED"
+                    {% if selected_status == "REJECTED" %}selected{% endif %}>
+                    Rejected
+                </option>
+                <option value="CANCELLED"
+                    {% if selected_status == "CANCELLED" %}selected{% endif %}>
+                    Cancelled
+                </option>
+                <option value="COMPLETED"
+                    {% if selected_status == "COMPLETED" %}selected{% endif %}>
+                    Completed
+                </option>
+            </select>
+
+            <button type="submit" class="btn btn-outline-gold btn-sm">
+                <i class="bi bi-funnel me-1"></i> Filter
+            </button>
+
+            {% if selected_status %}
+                <a href="{% url 'my-bookings' %}"
+                   class="btn btn-outline-secondary btn-sm">
+                    Clear
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if bookings %}
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Item</th>
+                        <th>Booking Date</th>
+                        <th>End Date</th>
+                        <th>Booking Time</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Requested On</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for booking in bookings %}
+                        <tr>
+                            <td class="fw-semibold">#{{ booking.id }}</td>
+
+                            <td>
+                                <div class="fw-semibold">{{ booking.item_title }}</div>
+                                <div class="text-secondary mt-1" style="font-size: 11px;">
+                                    {{ booking.get_item_type_display }}
+                                </div>
+                            </td>
+
+                            <td>{{ booking.booking_date|date:"d M Y" }}</td>
+                            <td>
+                                {% if booking.booking_end_date %}
+                                    {{ booking.booking_end_date|date:"d M Y" }}
+                                {% else %}
+                                    <span class="text-secondary">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if booking.booking_time %}
+                                    {{ booking.booking_time|time:"g:i A" }}
+                                {% else %}
+                                    <span class="text-secondary">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="fw-semibold">
+                                ₹{{ booking.total_price|floatformat:2 }}
+                                {% if booking.payment_attempt.status == "PAID" %}
+                                    <span class="d-block small text-success">
+                                        Payment complete
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if booking.status == "PENDING" %}
+                                    <span class="badge rounded-pill text-bg-warning">
+                                        Pending
+                                    </span>
+                                {% elif booking.status == "CONFIRMED" %}
+                                    {% if booking.customer_confirmed_at %}
+                                        <span class="badge rounded-pill text-bg-info">
+                                            Awaiting admin approval
+                                        </span>
+                                    {% else %}
+                                        <span class="badge rounded-pill text-bg-success">
+                                            Confirmed
+                                        </span>
+                                    {% endif %}
+                                {% elif booking.status == "REJECTED" %}
+                                    <span class="badge rounded-pill text-bg-danger">
+                                        Rejected
+                                    </span>
+                                {% elif booking.status == "CANCELLED" %}
+                                    <span class="badge rounded-pill text-bg-secondary">
+                                        Cancelled
+                                    </span>
+                                {% elif booking.status == "COMPLETED" %}
+                                    <span class="badge rounded-pill text-bg-primary">
+                                        Completed
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>{{ booking.created_at|date:"d M Y" }}</td>
+
+                            <td>
+                                <a href="{% url 'booking-detail' booking.id %}"
+                                   class="btn btn-sm btn-outline-gold">
+                                    <i class="bi bi-eye me-1"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-calendar2-x"></i>
+
+            <h3 class="fs-6 fw-bold text-dark">
+                {% if selected_status %}
+                    No bookings with this status
+                {% else %}
+                    Your booking history is empty
+                {% endif %}
+            </h3>
+
+            <p class="small mb-3">
+                {% if selected_status %}
+                    Try another status or clear the filter to see all bookings.
+                {% else %}
+                    Explore our events, services, and packages to get started.
+                {% endif %}
+            </p>
+
+            {% if selected_status %}
+                <a href="{% url 'my-bookings' %}" class="btn btn-outline-gold">
+                    Clear Filter
+                </a>
+            {% else %}
+                <a href="{% url 'public-events' %}" class="btn btn-gold">
+                    Explore Events
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
