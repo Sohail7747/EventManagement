@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from dashboard.models import Event, Service
+from admin_panel.models import Event, Service
 
 
 class EventPackage(models.Model):

@@ -11,27 +11,25 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-from dashboard.serializers import RegistrationSerializer
 
 
-# Browser logout
+
 @require_POST
 def logout_view(request):
     django_logout(request)
     return redirect("home")
 
 
-# Login page
+
 def login_page(request):
     return render(request, "dashboard/login.html")
 
 
-# Registration page
+
 def register_page(request):
     return render(request, "dashboard/register.html")
 
 
-# Public registration options
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def registration_options_api(request):
@@ -40,13 +38,13 @@ def registration_options_api(request):
     })
 
 
-# Register a new account
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register_api(request):
     requested_role = request.data.get("role", "")
 
-    # Public users cannot create sub-admin accounts.
+    
     if requested_role == "SUB_ADMIN":
         if not request.user.is_authenticated or not request.user.is_staff:
             return Response(
@@ -88,7 +86,7 @@ def register_api(request):
     )
 
 
-# Login API
+
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login_api(request):
@@ -109,7 +107,6 @@ def login_api(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Find the account by email.
     account = User.objects.filter(email__iexact=email).first()
 
     if account is None:
@@ -118,7 +115,6 @@ def login_api(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    # Authenticate with the account's actual username.
     user = authenticate(
         request,
         username=account.username,
@@ -131,7 +127,6 @@ def login_api(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
-    # Determine the role before creating a browser session.
     if user.is_superuser:
         role = "ADMIN"
     else:
@@ -145,7 +140,6 @@ def login_api(request):
 
         role = profile.role
 
-    # Choose a destination for the account.
     if user.is_superuser or role == "SUB_ADMIN":
         redirect_url = "/admin-dashboard/"
     elif role == "SELLER":
@@ -158,10 +152,8 @@ def login_api(request):
             status=status.HTTP_403_FORBIDDEN
         )
 
-    # Create the Django browser session after validation.
     django_login(request, user)
 
-    # Create or reuse the API token.
     token, _ = Token.objects.get_or_create(user=user)
 
     return Response(
@@ -184,11 +176,9 @@ def login_api(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout_api(request):
-    # Invalidate the API token, if token authentication was used.
     if request.auth and hasattr(request.auth, "delete"):
         request.auth.delete()
 
-    # End the Django browser session as well.
     django_logout(request)
 
     return Response(

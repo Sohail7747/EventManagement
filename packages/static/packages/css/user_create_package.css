@@ -484,6 +484,19 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .offer-service-rating,
+  .offer-service-review {
+    display: block;
+    margin-top: 3px;
+  }
+  .offer-service-rating {
+    color: var(--finder-accent-dark);
+    font-weight: 650;
+  }
+  .offer-service-review {
+    color: var(--finder-muted);
+    font-style: italic;
+  }
   .offer-total {
     display: flex;
     justify-content: space-between;

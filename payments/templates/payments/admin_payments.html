@@ -6,7 +6,7 @@
 {% block content %}
 <div class="mb-4">
     <h1 class="h3">Transactions and seller payouts</h1>
-    <p class="text-secondary">Review customer payment transactions, platform commission, and seller payout transfers. Sellers can request eligible earnings after the customer confirms event completion.</p>
+    <p class="text-secondary">Review customer payments and commission, pay sellers for their allocated share after admin approval of event completion, and process seller payout requests.</p>
 </div>
 
 <div class="stats-grid mb-4">
@@ -95,15 +95,63 @@
     </div>
 </section>
 
+<section class="panel mb-4">
+    <div class="panel-header">
+        <div>
+            <h2>Completed earnings ready for payout</h2>
+            <span class="small text-secondary">Pay each seller separately for eligible bookings, including bookings with multiple sellers.</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr><th>Seller</th><th>Completed bookings</th><th>Seller share</th><th>Transfer details</th></tr>
+            </thead>
+            <tbody>
+                {% for seller_payout in available_seller_payouts %}
+                    <tr>
+                        <td>{{ seller_payout.seller.business_name }}<span class="d-block small text-secondary">{{ seller_payout.seller.user.email }}</span></td>
+                        <td>{{ seller_payout.earning_count }}</td>
+                        <td class="fw-semibold">₹{{ seller_payout.amount|floatformat:2 }}</td>
+                        <td>
+                            <form method="post" class="d-grid gap-2" style="min-width:220px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="pay_available">
+                                <input type="hidden" name="seller_id" value="{{ seller_payout.seller.pk }}">
+                                <select class="form-select form-select-sm" name="payment_method" aria-label="Payment method">
+                                    <option value="">Select payout method</option>
+                                    <option>Bank transfer</option>
+                                    <option>UPI</option>
+                                    <option>Other</option>
+                                </select>
+                                <input class="form-control form-control-sm" name="payment_reference" placeholder="Transfer reference" required>
+                                <textarea class="form-control form-control-sm" name="admin_note" placeholder="Admin note"></textarea>
+                                <button class="btn btn-success btn-sm">Record payout as paid</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4" class="text-center text-secondary py-4">No completed earnings are ready for payout.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
 <section class="panel">
-    <div class="panel-header"><h2>Seller payout transactions</h2></div>
+    <div class="panel-header"><h2>Seller payout transactions and requests</h2></div>
     <div class="table-responsive">
         <table class="table align-middle mb-0">
-            <thead><tr><th>Seller</th><th>Amount</th><th>Requested / processed</th><th>Status / transfer details</th><th>Action</th></tr></thead>
+            <thead><tr><th>Seller</th><th>Booking(s)</th><th>Amount</th><th>Requested / processed</th><th>Status / transfer details</th><th>Action</th></tr></thead>
             <tbody>
                 {% for payout in payout_requests %}
                     <tr>
                         <td>{{ payout.seller.business_name }}<div class="small text-secondary">{{ payout.seller.user.email }}</div></td>
+                        <td>
+                            {% for earning in payout.earnings.all %}
+                                <span class="d-block">Booking #{{ earning.booking_id }}</span>
+                            {% empty %}—{% endfor %}
+                        </td>
                         <td>₹{{ payout.amount|floatformat:2 }}</td>
                         <td>{{ payout.created_at|date:"d M Y H:i" }}
                             {% if payout.processed_at %}<span class="d-block small text-secondary">Processed {{ payout.processed_at|date:"d M Y H:i" }}</span>{% endif %}
@@ -132,7 +180,7 @@
                         </td>
                     </tr>
                 {% empty %}
-                    <tr><td colspan="5" class="text-center text-secondary py-4">No payout requests yet.</td></tr>
+                    <tr><td colspan="6" class="text-center text-secondary py-4">No payout transactions yet.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

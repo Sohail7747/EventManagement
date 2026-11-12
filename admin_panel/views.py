@@ -195,7 +195,6 @@ def seller_accounts_api(request):
     ])
 
 
-# Only staff/admin users can access these management pages.
 def admin_check(user):
     return user.is_authenticated and user.is_staff
 
@@ -276,7 +275,9 @@ def dashboard_page(request):
 
     return render(request, "dashboard/dashboard.html", context)
 
-# ---------------- EVENTS CRUD ----------------
+
+
+# ---------------- EVENTS CRUD  ----------------
 
 @admin_required
 def events_page(request):

@@ -100,7 +100,7 @@
                             <i class="bi bi-send-check"></i>
                             <div>
                                 <strong>Your confirmation was sent to admin</strong>
-                                <div>Submitted {{ booking.customer_confirmed_at|date:"d M Y, h:i A" }}. Payouts unlock after admin approval.</div>
+                                <div>Submitted {{ booking.customer_confirmed_at|date:"d M Y, h:i A" }}</div>
                             </div>
                         </div>
                     {% elif booking.customer_completion_rejected_at %}
@@ -390,7 +390,7 @@
                 </section>
             {% endif %}
 
-            {% if booking.status == "PENDING" or booking.status == "CONFIRMED" %}
+            {% if can_request_cancellation %}
                 <section class="booking-cancel mb-4">
                     <h3><i class="bi bi-info-circle me-1"></i>Need to cancel?</h3>
                     {% if cancellation_request %}
@@ -418,11 +418,18 @@
                 </section>
             {% endif %}
 
-            {% if can_review_package %}
+            {% if can_review_booking %}
                 <section class="booking-section-card mb-4">
                     <div class="booking-section-heading">
                         <span class="booking-section-icon"><i class="bi bi-star"></i></span>
-                        <div><h3>Review this package</h3><p>Only customers with a completed booking can leave a review.</p></div>
+                        <div>
+                            {% if booking.item_type == "EVENT" or booking.item_type == "SERVICE" %}
+                                <h3>Review this event or service</h3>
+                            {% else %}
+                                <h3>Review this package</h3>
+                            {% endif %}
+                            <p>Share your feedback after confirming this booking is complete.</p>
+                        </div>
                     </div>
                     <form method="post" action="{% url 'submit-package-review' booking.pk %}">
                         {% csrf_token %}
@@ -437,8 +444,29 @@
                         </select>
                         <label class="form-label small fw-semibold" for="package-review-comment">Review (optional)</label>
                         <textarea class="form-control form-control-sm mb-3" id="package-review-comment" name="comment" maxlength="2000" rows="3"></textarea>
-                        <button class="btn btn-gold btn-sm w-100" type="submit">Submit review</button>
+                        {% if booking.item_type == "CATALOG_PACKAGE" or booking.item_type == "CUSTOM_PACKAGE" %}
+                            <p class="small text-secondary">Your rating and comment will be shown on every service included in this package.</p>
+                            <button class="btn btn-gold btn-sm w-100" type="submit">Submit review for included services</button>
+                        {% else %}
+                            <button class="btn btn-gold btn-sm w-100" type="submit">Submit review</button>
+                        {% endif %}
                     </form>
+                </section>
+            {% elif completion_confirmed and review_submitted %}
+                <section class="booking-section-card mb-4">
+                    <div class="booking-section-heading">
+                        <span class="booking-section-icon"><i class="bi bi-star-fill"></i></span>
+                        <div>
+                            <h3>Thank you for your feedback</h3>
+                            {% if booking.item_type == "EVENT" %}
+                                <p>Your rating and comment are visible to other customers viewing this event.</p>
+                            {% elif booking.item_type == "SERVICE" %}
+                                <p>Your rating and comment are visible to other customers viewing this service.</p>
+                            {% else %}
+                                <p>Your rating and comment are visible on the services included in this completed package.</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </section>
             {% endif %}
 

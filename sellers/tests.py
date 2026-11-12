@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
 
-from dashboard.models import Event, Profile, Seller, Service
+from admin_panel.models import Event, Profile, Seller, Service
 from packages.models import CatalogPackage, CatalogPackageItem
 
 

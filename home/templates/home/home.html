@@ -282,6 +282,17 @@
                                     <p class="card-description">
                                         {{ event.description|truncatewords:18    }}
                                     </p>
+                                    {% if event.rating_average %}
+                                        <span class="small text-warning">{{ event.rating_average|floatformat:1 }} ★</span>
+                                        <span class="small text-secondary">({{ event.review_count }} review{{ event.review_count|pluralize }})</span>
+                                    {% else %}
+                                        <span class="small text-secondary">No reviews yet</span>
+                                    {% endif %}
+                                    {% for review in event.reviews.all|slice:":3" %}
+                                        {% if review.comment %}
+                                            <p class="small text-secondary mt-2 mb-0">“{{ review.comment|truncatewords:18 }}”</p>
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
                             </article>
                         </a>
@@ -355,6 +366,17 @@
                                     <span class="service-kicker">EVENT SERVICE</span>
                                     <h3>{{ service.name }}</h3>
                                     <p>{{ service.description|truncatewords:14 }}</p>
+                                    {% if service.rating_average %}
+                                        <span class="small text-warning">{{ service.rating_average|floatformat:1 }} ★</span>
+                                        <span class="small text-secondary">({{ service.review_count }} review{{ service.review_count|pluralize }})</span>
+                                    {% else %}
+                                        <span class="small text-secondary">No reviews yet</span>
+                                    {% endif %}
+                                    {% for review in service.reviews.all|slice:":3" %}
+                                        {% if review.comment %}
+                                            <p class="small text-secondary mt-2 mb-0">“{{ review.comment|truncatewords:18 }}”</p>
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
                             </article>
                         </a>

@@ -12,10 +12,11 @@ from bookings.models import (
     Booking,
     BookingSellerDecision,
     PackageReview,
+    ServiceReview,
     SellerUnavailableDate,
     ensure_booking_seller_decisions,
 )
-from dashboard.models import Event, Profile, Seller, Service
+from admin_panel.models import Event, Profile, Seller, Service
 from payments.models import PackagePaymentAttempt
 from payments.settlements import create_booking_earnings
 from bookings.availability import seller_ids_for_item
@@ -462,6 +463,88 @@ class CustomPackageBuilderTests(TestCase):
             302,
         )
         self.assertEqual(PackageReview.objects.filter(booking=booking).count(), 1)
+        self.assertEqual(
+            list(
+                ServiceReview.objects.filter(booking=booking).values_list(
+                    "service_id",
+                    "rating",
+                    "comment",
+                )
+            ),
+            [(self.catering_one.pk, 5, "Excellent service.")],
+        )
+
+    def test_custom_package_review_reaches_every_included_service(self):
+        custom_package = EventPackage.objects.create(
+            user=self.customer,
+            event=self.event,
+            event_date=timezone.localdate() - timedelta(days=2),
+            total_cost=750,
+        )
+        PackageService.objects.create(
+            package=custom_package,
+            service=self.catering_one,
+            seller=self.first_seller,
+            selected_price=450,
+        )
+        PackageService.objects.create(
+            package=custom_package,
+            service=self.photography,
+            seller=self.second_seller,
+            selected_price=300,
+        )
+        booking = Booking.objects.create(
+            user=self.customer,
+            item_type=Booking.ItemType.CUSTOM_PACKAGE,
+            custom_package=custom_package,
+            booking_date=custom_package.event_date,
+            total_price=750,
+            item_title="Multi-seller celebration",
+            status=Booking.Status.COMPLETED,
+        )
+        booking.package_services.set([self.catering_one, self.photography])
+
+        response = self.client.post(
+            reverse("submit-package-review", args=[booking.pk]),
+            {"rating": "5", "comment": "Wonderful service from every seller."},
+        )
+
+        self.assertRedirects(response, reverse("booking-detail", args=[booking.pk]))
+        reviews = list(
+            ServiceReview.objects.filter(booking=booking)
+            .order_by("service_id")
+            .values_list("service_id", "rating", "comment")
+        )
+        self.assertEqual(
+            reviews,
+            [
+                (self.catering_one.pk, 5, "Wonderful service from every seller."),
+                (self.photography.pk, 5, "Wonderful service from every seller."),
+            ],
+        )
+        self.assertFalse(PackageReview.objects.filter(booking=booking).exists())
+        self.assertContains(
+            self.client.get(reverse("booking-detail", args=[booking.pk])),
+            "Thank you for your feedback",
+        )
+
+        package_page = self.client.get(
+            reverse("public-package-detail", args=[self.catering_one_package.pk])
+        )
+        self.assertContains(package_page, "Wonderful service from every seller.")
+        self.assertContains(package_page, "5.0 ★")
+
+        finder_page = self.client.get(reverse("package-selection"))
+        reviewed_offering = next(
+            offer
+            for offer in finder_page.context["service_offerings"]
+            if offer["service_id"] == self.catering_one.pk
+        )
+        self.assertEqual(reviewed_offering["review_count"], 1)
+        self.assertEqual(
+            reviewed_offering["reviews"][0]["comment"],
+            "Wonderful service from every seller.",
+        )
 
     def test_booking_must_be_completed_before_review_submission(self):
         booking = Booking.objects.create(

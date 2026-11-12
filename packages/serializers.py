@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 
-from dashboard.models import Event, Service
+from admin_panel.models import Event, Service
 from .models import EventPackage, PackageService
 
 

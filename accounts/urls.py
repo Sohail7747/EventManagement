@@ -2,12 +2,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Login and registration pages
+
     path("login/", views.login_page, name="accounts-login-page"),
     path("logout/", views.logout_view, name="logout"),
     path("register/", views.register_page, name="accounts-register-page"),
 
-    # Authentication APIs
     path("api/registration-options/", views.registration_options_api, name="accounts-registration-options"),
     path("api/register/", views.register_api, name="accounts-register"),
     path("api/login/", views.login_api, name="accounts-login"),

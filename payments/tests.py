@@ -12,7 +12,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from dashboard.models import Event, Profile, Seller, Service
+from admin_panel.models import Event, Profile, Seller, Service
 from bookings.availability import reserve_booking_dates
 from bookings.models import BookingDateReservation, SellerUnavailableDate
 from packages.models import (
@@ -25,6 +25,7 @@ from packages.models import (
 from bookings.models import (
     Booking,
     BookingSellerDecision,
+    PackageReview,
     ensure_booking_seller_decisions,
 )
 from .models import (
@@ -570,7 +571,7 @@ class PackageBookingPageTests(TestCase):
         RAZORPAY_KEY_SECRET="test-secret",
     )
     @patch("payments.views.razorpay_client")
-    def test_custom_package_payment_splits_ninety_percent_equally(
+    def test_custom_package_payment_allocates_earnings_by_selected_seller_prices(
         self,
         razorpay_client_mock,
     ):
@@ -595,13 +596,13 @@ class PackageBookingPageTests(TestCase):
             event=None,
             event_date=date.today() + timedelta(days=20),
             event_price=0,
-            total_cost=1000,
+            total_cost=1500,
             guest_count=2,
         )
         PackageService.objects.create(
             package=package,
             service=self.package.package_items.get().service,
-            selected_price=500,
+            selected_price=1000,
         )
         PackageService.objects.create(
             package=package,
@@ -614,7 +615,7 @@ class PackageBookingPageTests(TestCase):
         gateway.payment.fetch.return_value = {
             "id": "pay_custom_123",
             "order_id": "order_custom_123",
-            "amount": 130000,
+            "amount": 180000,
             "currency": "INR",
             "status": "captured",
         }
@@ -632,16 +633,16 @@ class PackageBookingPageTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Continue to secure payment")
-        self.assertContains(response, "Opening payment options...")
-        self.assertContains(response, "checkout.open();")
-        self.assertContains(response, "₹1300.00")
+        self.assertContains(response, "Pay ₹1800.00 securely")
+        self.assertContains(response, 'id="razorpay-options"')
+        self.assertContains(response, "₹1800.00")
         self.assertContains(
             response,
             'type="button"\n                        id="customPaymentButton"',
         )
         attempt = PackagePaymentAttempt.objects.get(custom_package=package)
-        self.assertEqual(attempt.amount_paise, 130000)
-        self.assertEqual(attempt.total_price, 1300)
+        self.assertEqual(attempt.amount_paise, 180000)
+        self.assertEqual(attempt.total_price, 1800)
 
         verify_response = self.client.post(
             reverse("verify-package-payment"),
@@ -656,7 +657,7 @@ class PackageBookingPageTests(TestCase):
         self.assertEqual(verify_response.status_code, 200)
         booking = Booking.objects.get(custom_package=package)
         self.assertEqual(booking.status, Booking.Status.PENDING)
-        self.assertEqual(booking.total_price, 1300)
+        self.assertEqual(booking.total_price, 1800)
         self.assertEqual(
             set(
                 booking.seller_earnings.values_list(
@@ -673,7 +674,7 @@ class PackageBookingPageTests(TestCase):
                     flat=True,
                 )
             ),
-            [585, 585],
+            [1080, 540],
         )
         self.assertEqual(
             list(
@@ -682,7 +683,7 @@ class PackageBookingPageTests(TestCase):
                     flat=True,
                 )
             ),
-            [65, 65],
+            [120, 60],
         )
         self.assertEqual(booking.seller_decisions.count(), 2)
 
@@ -947,6 +948,32 @@ class PackageBookingPageTests(TestCase):
         self.assertIsNotNone(booking.customer_confirmed_at)
         self.assertIsNone(booking.admin_completed_at)
 
+        detail = self.client.get(reverse("booking-detail", args=[booking.pk]))
+        self.assertContains(detail, "Review this package")
+        self.assertNotContains(detail, "Request cancellation")
+        cancellation_response = self.client.post(
+            reverse("cancel-booking", args=[booking.pk]),
+            {"reason": "No longer needed"},
+        )
+        self.assertRedirects(
+            cancellation_response,
+            reverse("booking-detail", args=[booking.pk]),
+        )
+        self.assertFalse(
+            BookingCancellationRequest.objects.filter(booking=booking).exists()
+        )
+
+        review_response = self.client.post(
+            reverse("submit-package-review", args=[booking.pk]),
+            {"rating": "5", "comment": "The event was completed successfully."},
+        )
+        self.assertRedirects(
+            review_response,
+            reverse("booking-detail", args=[booking.pk]),
+        )
+        self.assertTrue(PackageReview.objects.filter(booking=booking).exists())
+        self.assertEqual(booking.service_reviews.count(), 1)
+
         self.client.force_login(self.seller.user)
         seller_dashboard = self.client.get(reverse("seller-dashboard"))
         self.assertEqual(seller_dashboard.context["available_total"], 0)
@@ -1023,6 +1050,88 @@ class PackageBookingPageTests(TestCase):
         self.assertRedirects(response, reverse("admin-payments"))
         payout.refresh_from_db()
         self.assertEqual(payout.status, PayoutRequest.Status.REQUESTED)
+
+    def test_admin_can_pay_each_seller_share_for_a_completed_multi_seller_booking(self):
+        second_user = get_user_model().objects.create_user(
+            username="admin-multi-payout-seller",
+            email="admin-multi-payout-seller@example.com",
+            password="test-password",
+        )
+        Profile.objects.create(user=second_user, role="SELLER")
+        second_seller = Seller.objects.create(
+            user=second_user,
+            business_name="Second payout seller",
+        )
+        booking = Booking.objects.create(
+            user=self.customer,
+            item_type=Booking.ItemType.CUSTOM_PACKAGE,
+            custom_package=EventPackage.objects.create(
+                user=self.customer,
+                event=self.event,
+                event_date=date.today() - timedelta(days=2),
+                total_cost=1500,
+            ),
+            booking_date=date.today() - timedelta(days=2),
+            total_price=1800,
+            item_title="Multiple seller package",
+            status=Booking.Status.COMPLETED,
+            admin_completed_at=timezone.now(),
+        )
+        first_earning = SellerEarning.objects.create(
+            booking=booking,
+            seller=self.seller,
+            commission_amount=120,
+            seller_amount=1080,
+            available_on=date.today(),
+        )
+        second_earning = SellerEarning.objects.create(
+            booking=booking,
+            seller=second_seller,
+            commission_amount=60,
+            seller_amount=540,
+            available_on=date.today(),
+        )
+        admin = get_user_model().objects.create_superuser(
+            username="multi-payout-admin",
+            email="multi-payout-admin@example.com",
+        )
+        self.client.force_login(admin)
+
+        page = self.client.get(reverse("admin-payments"))
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(len(page.context["available_seller_payouts"]), 2)
+        self.assertContains(page, "Completed earnings ready for payout")
+        self.assertContains(page, "Second payout seller")
+
+        for seller, amount, reference in (
+            (self.seller, "1080.00", "UTR-FIRST"),
+            (second_seller, "540.00", "UTR-SECOND"),
+        ):
+            response = self.client.post(
+                reverse("admin-payments"),
+                {
+                    "action": "pay_available",
+                    "seller_id": seller.pk,
+                    "payment_method": "UPI",
+                    "payment_reference": reference,
+                },
+            )
+            self.assertRedirects(response, reverse("admin-payments"))
+            payout = PayoutRequest.objects.get(seller=seller)
+            self.assertEqual(payout.amount, Decimal(amount))
+            self.assertEqual(payout.status, PayoutRequest.Status.PAID)
+            self.assertEqual(payout.payment_reference, reference)
+
+        first_earning.refresh_from_db()
+        second_earning.refresh_from_db()
+        self.assertNotEqual(first_earning.payout_request_id, second_earning.payout_request_id)
+        self.assertEqual(
+            SellerEarning.objects.filter(
+                booking=booking,
+                payout_request__status=PayoutRequest.Status.PAID,
+            ).count(),
+            2,
+        )
 
     def test_seller_and_admin_booking_payment_pages_render(self):
         booking = Booking.objects.create(

@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.contrib.auth.models import User
 
-from dashboard.models import Event, Seller, Service
+from admin_panel.models import Event, Seller, Service
 from packages.models import CatalogPackage, CatalogPackageItem
 
 

@@ -162,8 +162,18 @@
                                             <strong>{{ offering.service.name }}</strong>
                                             <span>Package: {{ offering.package.title }}</span>
                                             <span>Seller: {{ offering.package.seller.business_name }}</span>
+                                            {% if offering.service.rating_average %}
+                                                <span class="text-warning">{{ offering.service.rating_average|floatformat:1 }} ★ <span class="text-secondary">({{ offering.service.review_count }} review{{ offering.service.review_count|pluralize }})</span></span>
+                                            {% else %}
+                                                <span class="text-secondary">No reviews yet</span>
+                                            {% endif %}
                                             <span class="service-option-description">{{ offering.service.description|truncatechars:100 }}</span>
                                             <span class="service-option-price">₹{{ offering.selected_price|floatformat:2 }}</span>
+                                            {% for review in offering.service.reviews.all|slice:":2" %}
+                                                {% if review.comment %}
+                                                    <span class="service-option-description">“{{ review.comment|truncatechars:120 }}”</span>
+                                                {% endif %}
+                                            {% endfor %}
                                         </span>
                                     </label>
                                 </div>

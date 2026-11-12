@@ -41,8 +41,8 @@ from bookings.availability import (
 )
 from bookings.notifications import send_booking_email
 from packages.models import EventPackage
-from dashboard.models import Profile, Seller
-from dashboard.analytics import monthly_amounts
+from admin_panel.models import Profile, Seller
+from admin_panel.analytics import monthly_amounts
 from packages.models import CatalogPackage
 from packages.pricing import PACKAGE_GUEST_PRICE
 
@@ -1367,12 +1367,68 @@ def admin_complete_booking(request, booking_id):
 @admin_required
 def admin_payments_page(request):
     if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "pay_available":
+            method = request.POST.get("payment_method", "").strip()
+            reference = request.POST.get("payment_reference", "").strip()
+            if not method or not reference:
+                messages.error(
+                    request,
+                    "Enter the payment method and transfer reference.",
+                )
+                return redirect("admin-payments")
+
+            with transaction.atomic():
+                seller = get_object_or_404(
+                    Seller.objects.select_for_update(),
+                    pk=request.POST.get("seller_id"),
+                )
+                eligible_earnings = list(
+                    SellerEarning.objects.select_for_update()
+                    .filter(
+                        seller=seller,
+                        available_on__lte=timezone.localdate(),
+                        payout_request__isnull=True,
+                        booking__status=Booking.Status.COMPLETED,
+                        booking__admin_completed_at__isnull=False,
+                    )
+                    .order_by("pk")
+                )
+                amount = sum(
+                    (earning.seller_amount for earning in eligible_earnings),
+                    Decimal("0.00"),
+                )
+                if not eligible_earnings or amount <= 0:
+                    messages.error(
+                        request,
+                        "There are no completed, approved earnings available for this seller.",
+                    )
+                else:
+                    payout = PayoutRequest.objects.create(
+                        seller=seller,
+                        amount=amount,
+                        status=PayoutRequest.Status.PAID,
+                        payment_method=method,
+                        payment_reference=reference,
+                        admin_note=request.POST.get("admin_note", "").strip(),
+                        processed_at=timezone.now(),
+                    )
+                    SellerEarning.objects.filter(
+                        pk__in=[earning.pk for earning in eligible_earnings],
+                        payout_request__isnull=True,
+                    ).update(payout_request=payout)
+                    messages.success(
+                        request,
+                        f"Paid ₹{amount:.2f} to {seller.business_name} "
+                        f"for {len(eligible_earnings)} completed booking(s).",
+                    )
+            return redirect("admin-payments")
+
         with transaction.atomic():
             payout = get_object_or_404(
                 PayoutRequest.objects.select_for_update(),
                 pk=request.POST.get("payout_id"),
             )
-            action = request.POST.get("action")
             note = request.POST.get("admin_note", "").strip()
             if payout.status != PayoutRequest.Status.REQUESTED:
                 messages.error(
@@ -1430,6 +1486,29 @@ def admin_payments_page(request):
         .order_by("status", "-created_at")
     )
     earnings = SellerEarning.objects.all()
+    available_seller_payouts = {}
+    available_earnings = (
+        SellerEarning.objects.filter(
+            available_on__lte=timezone.localdate(),
+            payout_request__isnull=True,
+            booking__status=Booking.Status.COMPLETED,
+            booking__admin_completed_at__isnull=False,
+        )
+        .select_related("seller", "seller__user")
+        .order_by("seller__business_name", "seller_id", "pk")
+    )
+    for earning in available_earnings:
+        seller_payout = available_seller_payouts.setdefault(
+            earning.seller_id,
+            {
+                "seller": earning.seller,
+                "amount": Decimal("0.00"),
+                "earning_count": 0,
+            },
+        )
+        seller_payout["amount"] += earning.seller_amount
+        seller_payout["earning_count"] += 1
+
     gross_earnings = earnings.annotate(
         gross_amount=F("seller_amount") + F("commission_amount")
     )
@@ -1440,6 +1519,7 @@ def admin_payments_page(request):
     )
     context = {
         "payout_requests": payout_requests,
+        "available_seller_payouts": available_seller_payouts.values(),
         "payment_attempts": payment_attempts,
         "gross_payment_total": gross_earnings.aggregate(
             total=Sum("gross_amount")

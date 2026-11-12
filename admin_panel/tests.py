@@ -82,7 +82,7 @@ class DashboardOverviewTests(TestCase):
                 response.headers.get.return_value = "image/jpeg"
                 response.read.return_value = b"\xff\xd8sample image data"
                 with patch(
-                    "dashboard.management.commands.seed_sample_services.urlopen",
+                    "admin_panel.management.commands.seed_sample_services.urlopen",
                     return_value=response,
                 ) as image_download:
                     call_command("seed_sample_services", stdout=StringIO())
@@ -114,7 +114,7 @@ class DashboardOverviewTests(TestCase):
                 response.headers.get.return_value = "image/jpeg"
                 response.read.return_value = b"\xff\xd8sample image data"
                 with patch(
-                    "dashboard.management.commands.seed_sample_events.urlopen",
+                    "admin_panel.management.commands.seed_sample_events.urlopen",
                     return_value=response,
                 ) as image_download:
                     call_command("seed_sample_events", stdout=StringIO())

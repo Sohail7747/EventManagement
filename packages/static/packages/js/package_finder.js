@@ -554,7 +554,19 @@
             serviceName.textContent = offer.service_name;
             const sellerName = document.createElement("span");
             sellerName.textContent = offer.seller_name;
-            copy.append(serviceName, sellerName);
+            const rating = document.createElement("span");
+            rating.className = "offer-service-rating";
+            rating.textContent = offer.review_count
+                ? `${Number(offer.rating_average).toFixed(1)} ★ · ${offer.review_count} verified review${offer.review_count === 1 ? "" : "s"}`
+                : "No reviews yet";
+            copy.append(serviceName, sellerName, rating);
+            (offer.reviews || []).forEach((review) => {
+                if (!review.comment) return;
+                const comment = document.createElement("span");
+                comment.className = "offer-service-review";
+                comment.textContent = `“${review.comment}” — ${review.reviewer}`;
+                copy.append(comment);
+            });
             const price = document.createElement("strong");
             price.textContent = money(Number(offer.price));
             item.append(imageWrap, copy, price);

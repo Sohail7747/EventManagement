@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from dashboard.models import Event
+from admin_panel.models import Event
 
 
 EVENTS = (

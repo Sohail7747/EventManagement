@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 import calendar
 from django.shortcuts import render, redirect
 from django.db import transaction
+from django.db.models import Avg, Count, Prefetch
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
@@ -16,7 +17,8 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from dashboard.models import Event, Seller, Service
+from bookings.models import ServiceReview
+from admin_panel.models import Event, Seller, Service
 from .models import (
     EventPackage,
     PackageService,
@@ -153,6 +155,20 @@ def package_selection_page(request):
         messages.error(request, "Package recommendations are available to customer accounts only.")
         return redirect("home")
 
+    reviewed_services = (
+        Service.objects.annotate(
+            review_average=Avg("reviews__rating"),
+            review_count=Count("reviews", distinct=True),
+        )
+        .prefetch_related(
+            Prefetch(
+                "reviews",
+                queryset=ServiceReview.objects.select_related("user").order_by(
+                    "-created_at"
+                ),
+            )
+        )
+    )
     offerings_by_seller_and_service = {}
 
     def remember_offering(
@@ -177,6 +193,24 @@ def package_selection_page(request):
             "image_url": service.image.url if service.image else "",
             "offer_type": offer_type,
             "offer_id": offer_id,
+            "rating_average": (
+                str(service.review_average)
+                if service.review_average is not None
+                else ""
+            ),
+            "review_count": service.review_count,
+            "reviews": [
+                {
+                    "rating": review.rating,
+                    "comment": review.comment,
+                    "reviewer": (
+                        review.user.get_full_name()
+                        or review.user.username
+                    ),
+                    "date": review.created_at.strftime("%d %b %Y"),
+                }
+                for review in service.reviews.all()[:3]
+            ],
         }
         previous = offerings_by_seller_and_service.get(key)
         prefer_package_price = (
@@ -198,7 +232,7 @@ def package_selection_page(request):
             offerings_by_seller_and_service[key] = candidate
 
     for service in (
-        Service.objects.filter(seller__isnull=False, is_deleted=False)
+        reviewed_services.filter(seller__isnull=False, is_deleted=False)
         .select_related("seller")
         .order_by("name", "seller__business_name", "pk")
     ):
@@ -217,7 +251,10 @@ def package_selection_page(request):
             package__seller__isnull=False,
             service__is_deleted=False,
         )
-        .select_related("package__seller", "service")
+        .select_related("package__seller")
+        .prefetch_related(
+            Prefetch("service", queryset=reviewed_services)
+        )
         .order_by("service__name", "package__seller__business_name", "pk")
     ):
         remember_offering(

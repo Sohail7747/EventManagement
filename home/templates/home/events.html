@@ -30,6 +30,26 @@
                         <p class="card-description">
                             {{ event.description|truncatewords:25 }}
                         </p>
+                        {% if event.rating_average %}
+                            <span class="small text-warning">{{ event.rating_average|floatformat:1 }} ★</span>
+                            <span class="small text-secondary">({{ event.review_count }} review{{ event.review_count|pluralize }})</span>
+                        {% else %}
+                            <span class="small text-secondary">No reviews yet</span>
+                        {% endif %}
+                        {% for review in event.reviews.all|slice:":3" %}
+                            <article class="border-top mt-2 pt-2">
+                                <div class="d-flex justify-content-between gap-2 small">
+                                    <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                    <span class="text-warning">{{ review.rating }} ★</span>
+                                </div>
+                                <span class="small text-secondary">{{ review.created_at|date:"d M Y" }} · Verified booking</span>
+                                {% if review.comment %}
+                                    <p class="small mb-0 mt-1">{{ review.comment|linebreaksbr }}</p>
+                                {% endif %}
+                            </article>
+                        {% empty %}
+                            <p class="small text-secondary mt-2 mb-0">No customer comments for this event yet.</p>
+                        {% endfor %}
                     </div>
                 </article>
             </div>

@@ -4,11 +4,6 @@ from . import views
 urlpatterns = [
     path("", views.seller_dashboard, name="seller-dashboard"),
     path(
-        "quotes/<int:quote_id>/respond/",
-        views.seller_service_quote_response,
-        name="seller-service-quote-response",
-    ),
-    path(
     "seller/packages/",
     views.seller_packages,
     name="seller-packages",

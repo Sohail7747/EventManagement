@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import transaction
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Prefetch, Q
 from django.http import JsonResponse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
@@ -20,13 +20,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from django.contrib.auth.models import User
-from dashboard.models import Event, Service, Profile
+from admin_panel.models import Event, Service, Profile
 from packages.models import CatalogPackage, EventPackage
 
 from .models import (
     Booking,
     BookingSellerDecision,
+    EventReview,
     Favourite,
+    ServiceReview,
     ensure_booking_seller_decisions,
 )
 from .serializers import BookingSerializer, FavouriteSerializer
@@ -111,6 +113,20 @@ def get_customer_favourites(user):
 # =========================================================
 
 def package_detail_page(request, package_id):
+    services_with_reviews = (
+        Service.objects.annotate(
+            rating_average=Avg("reviews__rating"),
+            review_count=Count("reviews", distinct=True),
+        )
+        .prefetch_related(
+            Prefetch(
+                "reviews",
+                queryset=ServiceReview.objects.select_related("user").order_by(
+                    "-created_at"
+                ),
+            )
+        )
+    )
     package = get_object_or_404(
         CatalogPackage.objects
         .filter(is_deleted=False)
@@ -121,7 +137,12 @@ def package_detail_page(request, package_id):
             review_count=Count("reviews", distinct=True),
         )
         .select_related("event", "seller", "seller__user")
-        .prefetch_related("package_items__service"),
+        .prefetch_related(
+            Prefetch(
+                "package_items__service",
+                queryset=services_with_reviews,
+            )
+        ),
         pk=package_id,
     )
     can_favourite = is_regular_user(request.user)
@@ -244,6 +265,22 @@ def booking_detail_page(request, pk):
         and booking.customer_confirmed_at is None
         and seller_has_reported_completion
     )
+    has_package_review = PackageReview.objects.filter(booking=booking).exists()
+    has_event_review = EventReview.objects.filter(booking=booking).exists()
+    has_service_reviews = booking.service_reviews.exists()
+    reviewable_booking = booking.item_type in (
+        Booking.ItemType.EVENT,
+        Booking.ItemType.SERVICE,
+        Booking.ItemType.CATALOG_PACKAGE,
+        Booking.ItemType.CUSTOM_PACKAGE,
+    )
+    completion_confirmed = (
+        booking.status == Booking.Status.COMPLETED
+        or (
+            booking.status == Booking.Status.CONFIRMED
+            and booking.customer_confirmed_at is not None
+        )
+    )
 
     return render(
         request,
@@ -255,10 +292,23 @@ def booking_detail_page(request, pk):
             "seller_has_reported_completion": seller_has_reported_completion,
             "event_has_ended": event_end_date <= timezone.localdate(),
             "cancellation_request": booking.cancellation_requests.first(),
-            "can_review_package": (
-                booking.item_type == Booking.ItemType.CATALOG_PACKAGE
-                and booking.status == Booking.Status.COMPLETED
-                and not PackageReview.objects.filter(booking=booking).exists()
+            "can_review_booking": (
+                reviewable_booking
+                and completion_confirmed
+                and not has_package_review
+                and not has_event_review
+                and not has_service_reviews
+            ),
+            "completion_confirmed": completion_confirmed,
+            "review_submitted": (
+                has_package_review or has_event_review or has_service_reviews
+            ),
+            "can_request_cancellation": (
+                booking.status == Booking.Status.PENDING
+                or (
+                    booking.status == Booking.Status.CONFIRMED
+                    and booking.customer_confirmed_at is None
+                )
             ),
             "active_page": "bookings",
         },
@@ -273,13 +323,27 @@ def submit_package_review(request, pk):
         return denied
     with transaction.atomic():
         booking = get_object_or_404(
-            Booking.objects.select_for_update(),
+            Booking.objects.select_for_update().filter(
+                Q(status=Booking.Status.COMPLETED)
+                | Q(
+                    status=Booking.Status.CONFIRMED,
+                    customer_confirmed_at__isnull=False,
+                )
+            ),
             pk=pk,
             user=request.user,
-            item_type=Booking.ItemType.CATALOG_PACKAGE,
-            status=Booking.Status.COMPLETED,
+            item_type__in=[
+                Booking.ItemType.EVENT,
+                Booking.ItemType.SERVICE,
+                Booking.ItemType.CATALOG_PACKAGE,
+                Booking.ItemType.CUSTOM_PACKAGE,
+            ],
         )
-        if PackageReview.objects.filter(booking=booking).exists():
+        if (
+            PackageReview.objects.filter(booking=booking).exists()
+            or EventReview.objects.filter(booking=booking).exists()
+            or booking.service_reviews.exists()
+        ):
             messages.error(request, "You have already reviewed this package.")
             return redirect("booking-detail", pk=booking.pk)
         try:
@@ -293,14 +357,62 @@ def submit_package_review(request, pk):
         if len(comment) > 2000:
             messages.error(request, "Your review must be 2,000 characters or fewer.")
             return redirect("booking-detail", pk=booking.pk)
-        PackageReview.objects.create(
-            package=booking.catalog_package,
-            booking=booking,
-            user=request.user,
-            rating=rating,
-            comment=comment,
+        service_ids = list(
+            booking.package_services.values_list("pk", flat=True)
         )
-    messages.success(request, "Thanks for sharing your package review.")
+        if booking.item_type == Booking.ItemType.SERVICE:
+            service_ids = [booking.service_id] if booking.service_id else []
+        elif not service_ids and booking.item_type == Booking.ItemType.CATALOG_PACKAGE:
+            service_ids = list(
+                booking.catalog_package.package_items.values_list(
+                    "service_id",
+                    flat=True,
+                )
+            )
+        elif not service_ids and booking.item_type == Booking.ItemType.CUSTOM_PACKAGE:
+            service_ids = list(
+                booking.custom_package.package_services.values_list(
+                    "service_id",
+                    flat=True,
+                )
+            )
+        if booking.item_type != Booking.ItemType.EVENT and not service_ids:
+            messages.error(
+                request,
+                "This booking has no services available to review.",
+            )
+            return redirect("booking-detail", pk=booking.pk)
+
+        if booking.item_type == Booking.ItemType.CATALOG_PACKAGE:
+            PackageReview.objects.create(
+                package=booking.catalog_package,
+                booking=booking,
+                user=request.user,
+                rating=rating,
+                comment=comment,
+            )
+        elif booking.item_type == Booking.ItemType.EVENT:
+            EventReview.objects.create(
+                event=booking.event,
+                booking=booking,
+                user=request.user,
+                rating=rating,
+                comment=comment,
+            )
+        if service_ids:
+            ServiceReview.objects.bulk_create(
+                [
+                    ServiceReview(
+                        booking=booking,
+                        service_id=service_id,
+                        user=request.user,
+                        rating=rating,
+                        comment=comment,
+                    )
+                    for service_id in service_ids
+                ]
+            )
+    messages.success(request, "Thanks for sharing your booking review.")
     return redirect("booking-detail", pk=booking.pk)
 
 
@@ -335,7 +447,7 @@ def create_cancellation_request(booking, user, reason):
         if booking.status not in (
             Booking.Status.PENDING,
             Booking.Status.CONFIRMED,
-        ):
+        ) or booking.customer_confirmed_at is not None:
             raise ValueError(
                 "This booking cannot be cancelled in its current status."
             )

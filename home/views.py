@@ -1,12 +1,51 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Avg, Count, Q
+from django.db.models import Prefetch
 from django.core.paginator import Paginator
 
-from bookings.models import Favourite
-from dashboard.models import Event, Profile, Service, StaticPage
+from bookings.models import EventReview, Favourite, ServiceReview
+from admin_panel.models import Event, Profile, Service, StaticPage
 from packages.models import CatalogPackage
 from .models import ContactMessage
+
+
+def _services_with_reviews():
+    return (
+        Service.objects.filter(is_deleted=False)
+        .select_related("seller")
+        .annotate(
+            rating_average=Avg("reviews__rating"),
+            review_count=Count("reviews", distinct=True),
+        )
+        .prefetch_related(
+            Prefetch(
+                "reviews",
+                queryset=ServiceReview.objects.select_related("user").order_by(
+                    "-created_at"
+                ),
+            )
+        )
+    )
+
+
+def _events_with_reviews():
+    return (
+        Event.objects.filter(is_deleted=False)
+        .select_related("seller")
+        .annotate(
+            rating_average=Avg("reviews__rating"),
+            review_count=Count("reviews", distinct=True),
+        )
+        .prefetch_related(
+            Prefetch(
+                "reviews",
+                queryset=EventReview.objects.select_related("user").order_by(
+                    "-created_at"
+                ),
+            )
+        )
+    )
 
 
 def _package_favourite_context(user, packages):
@@ -27,19 +66,9 @@ def _package_favourite_context(user, packages):
 
 
 def home_page(request):
-    events = (
-        Event.objects
-        .filter(is_deleted=False)
-        .select_related("seller")
-        .order_by("-created_at")[:10]
-    )
+    events = _events_with_reviews().order_by("-created_at")[:10]
 
-    services = (
-        Service.objects
-        .filter(is_deleted=False)
-        .select_related("seller")
-        .order_by("-created_at")[:10]
-    )
+    services = _services_with_reviews().order_by("-created_at")[:10]
 
     packages = list(
         CatalogPackage.objects
@@ -68,23 +97,13 @@ def home_page(request):
 
 
 def events_page(request):
-    events = (
-        Event.objects
-        .filter(is_deleted=False)
-        .select_related("seller")
-        .order_by("-created_at")
-    )
+    events = _events_with_reviews().order_by("-created_at")
 
     return render(request, "home/events.html", {"events": events})
 
 
 def services_page(request):
-    services = (
-        Service.objects
-        .filter(is_deleted=False)
-        .select_related("seller")
-        .order_by("-created_at")
-    )
+    services = _services_with_reviews().order_by("-created_at")
 
     return render(request, "home/services.html", {"services": services})
 

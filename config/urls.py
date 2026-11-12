@@ -8,7 +8,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("seller/", include("sellers.urls")),
     path("", include("home.urls")),
-    path("", include("dashboard.urls")),
+    path("", include("admin_panel.urls")),
     path("", include("packages.urls")),
     path("", include("bookings.urls")),
     path("", include("payments.urls")),

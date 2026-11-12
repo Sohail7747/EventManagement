@@ -1,8 +1,8 @@
 from django import forms
 from django.db.models import Q
-from dashboard.models import Event
+from admin_panel.models import Event
 
-from dashboard.models import Event, Service
+from admin_panel.models import Event, Service
 from packages.models import CatalogPackage
 
 class EventForm(forms.ModelForm):

@@ -4,12 +4,111 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from bookings.models import Favourite
-from dashboard.models import Event, Profile, Seller, Service
-from packages.models import CatalogPackage, CatalogPackageItem
+from bookings.models import Booking, EventReview, Favourite, ServiceReview
+from admin_panel.models import Event, Profile, Seller, Service
+from packages.models import CatalogPackage, CatalogPackageItem, EventPackage
 
 
 class HomeAuthenticationTests(TestCase):
+    def test_completed_event_booking_can_be_reviewed_and_rating_is_public(self):
+        customer = User.objects.create_user(
+            username="completed-event-reviewer",
+            email="completed-event-reviewer@example.com",
+            password="test-password",
+        )
+        Profile.objects.create(user=customer, role="USER")
+        event = Event.objects.create(
+            title="Completed event review listing",
+            description="An event with customer feedback",
+            location="Patna",
+            event_date=date.today() - timedelta(days=2),
+            price=1000,
+        )
+        booking = Booking.objects.create(
+            user=customer,
+            item_type=Booking.ItemType.EVENT,
+            event=event,
+            booking_date=event.event_date,
+            total_price=1000,
+            item_title=event.title,
+            status=Booking.Status.COMPLETED,
+        )
+        self.client.force_login(customer)
+
+        booking_page = self.client.get(
+            reverse("booking-detail", args=[booking.pk])
+        )
+        self.assertEqual(booking_page.status_code, 200)
+        self.assertContains(booking_page, "Review this event or service")
+        self.assertContains(booking_page, "Choose a rating")
+
+        response = self.client.post(
+            reverse("submit-package-review", args=[booking.pk]),
+            {"rating": "5", "comment": "A wonderful event."},
+        )
+        self.assertRedirects(
+            response,
+            reverse("booking-detail", args=[booking.pk]),
+        )
+        review = EventReview.objects.get(booking=booking)
+        self.assertEqual(review.event, event)
+        self.assertEqual(review.rating, 5)
+        self.assertEqual(review.comment, "A wonderful event.")
+        self.assertContains(
+            self.client.get(reverse("public-events")),
+            "A wonderful event.",
+        )
+
+    def test_custom_package_feedback_is_shown_on_public_service_pages(self):
+        customer = User.objects.create_user(
+            username="custom-review-customer",
+            email="custom-review-customer@example.com",
+            password="test-password",
+        )
+        seller_user = User.objects.create_user(
+            username="custom-review-seller",
+            email="custom-review-seller@example.com",
+            password="test-password",
+        )
+        seller = Seller.objects.create(
+            user=seller_user,
+            business_name="Custom Review Seller",
+        )
+        service = Service.objects.create(
+            name="Custom review photography",
+            description="Photography for custom packages",
+            price=500,
+            seller=seller,
+        )
+        custom_package = EventPackage.objects.create(
+            user=customer,
+            event_date=date.today(),
+            total_cost=500,
+        )
+        booking = Booking.objects.create(
+            user=customer,
+            item_type=Booking.ItemType.CUSTOM_PACKAGE,
+            custom_package=custom_package,
+            booking_date=date.today(),
+            total_price=500,
+            item_title="Custom celebration package",
+            status=Booking.Status.COMPLETED,
+        )
+        ServiceReview.objects.create(
+            booking=booking,
+            service=service,
+            user=customer,
+            rating=5,
+            comment="Excellent custom package service.",
+        )
+
+        for page_name in ("home", "public-services"):
+            with self.subTest(page=page_name):
+                response = self.client.get(reverse(page_name))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "Excellent custom package service.")
+                self.assertContains(response, "5.0 ★")
+
     def test_homepage_is_public_and_shows_login_actions(self):
         response = self.client.get(reverse("home"))
 

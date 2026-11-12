@@ -1,7 +1,7 @@
 from django import forms
 from django.db import transaction
 
-from dashboard.models import Event, Seller, Service
+from admin_panel.models import Event, Seller, Service
 from .models import CatalogPackage, CatalogPackageItem
 
 

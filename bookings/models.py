@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 
-from dashboard.models import Event, Service, Seller
+from admin_panel.models import Event, Service, Seller
 from packages.models import CatalogPackage, EventPackage
 
 
@@ -293,6 +293,76 @@ class PackageReview(models.Model):
 
     def __str__(self):
         return f"{self.package.title} — {self.rating}/5"
+
+
+class EventReview(models.Model):
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.PROTECT,
+        related_name="reviews",
+    )
+    booking = models.OneToOneField(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name="event_review",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="event_reviews",
+    )
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(max_length=2000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(rating__gte=1, rating__lte=5),
+                name="event_review_rating_1_to_5",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.event.title} — {self.rating}/5"
+
+
+class ServiceReview(models.Model):
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name="service_reviews",
+    )
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.PROTECT,
+        related_name="reviews",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="service_reviews",
+    )
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(max_length=2000, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["booking", "service"],
+                name="unique_booking_service_review",
+            ),
+            models.CheckConstraint(
+                condition=Q(rating__gte=1, rating__lte=5),
+                name="service_review_rating_1_to_5",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.service.name} — {self.rating}/5"
 
 
 class BookingSellerDecision(models.Model):

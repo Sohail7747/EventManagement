@@ -4,7 +4,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from dashboard.models import Seller
+from admin_panel.models import Seller
 from packages.models import CatalogPackage, EventPackage
 
 from .models import Booking, BookingDateReservation, SellerUnavailableDate
