@@ -1,0 +1,32 @@
+.profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #eeecff;
+        color: #6658d3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+    }
+
+    .form-control {
+        border-radius: 9px;
+        padding: 11px 13px;
+        border-color: #e4e5ee;
+    }
+
+    .form-control:focus {
+        border-color: #6658d3;
+        box-shadow: 0 0 0 0.2rem rgba(102, 88, 211, 0.12);
+    }
+
+    .btn-primary {
+        background-color: #6658d3;
+        border-color: #6658d3;
+    }
+
+    .btn-primary:hover {
+        background-color: #5546bd;
+        border-color: #5546bd;
+    }

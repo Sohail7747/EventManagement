@@ -1,0 +1,162 @@
+{% extends "sellers/seller_base.html" %}
+{% load static %}
+
+{% block title %}{% if package %}Edit Package{% else %}Create Package{% endif %} | EventSphere{% endblock %}
+{% block page_heading %}{% if package %}Edit Package{% else %}Create Package{% endif %}{% endblock %}
+{% block packages_active %}active{% endblock %}
+
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <h1>{% if package %}Edit Package{% else %}Create Package{% endif %}</h1>
+        <p>Choose an event and services from the admin catalog, then set your package prices.</p>
+    </div>
+    <a href="{% url 'seller-packages' %}" class="btn btn-outline-secondary rounded-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to Packages
+    </a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if form.non_field_errors %}
+    <div class="alert alert-danger">
+        {% for error in form.non_field_errors %}
+            <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="post" id="sellerPackageForm">
+    {% csrf_token %}
+
+    <section class="panel form-panel">
+        <div class="panel-header">
+            <h2><i class="bi bi-card-text me-2"></i>Package Information</h2>
+        </div>
+        <div class="form-body">
+            <div class="mb-4">
+                <label for="{{ form.title.id_for_label }}" class="form-label">Package Title</label>
+                {{ form.title }}
+                {% for error in form.title.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="mb-4">
+                <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                {{ form.description }}
+                {% for error in form.description.errors %}
+                    <div class="text-danger small mt-1">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <hr class="section-divider">
+
+            <h3 class="section-title"><span>1</span> Choose an Event</h3>
+            {% if form.event.field.queryset %}
+                <label for="{{ form.event.id_for_label }}" class="visually-hidden">Choose an event</label>
+                <div class="event-select-wrap">
+                    <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                    {{ form.event }}
+                </div>
+            {% else %}
+                <div class="empty-inline">
+                    No events are available yet. Ask an admin to add events to the shared catalog.
+                </div>
+            {% endif %}
+            {% for error in form.event.errors %}
+                <div class="text-danger small mt-2">{{ error }}</div>
+            {% endfor %}
+
+            <hr class="section-divider">
+
+            <h3 class="section-title"><span>2</span> Select Services</h3>
+            <p class="text-muted small mb-3">Choose one or more catalog services and enter a package price for each selected service.</p>
+
+            {% if form.services.field.queryset %}
+                <div class="service-picker" id="servicePicker">
+                    <button type="button" class="service-picker-toggle" id="servicePickerToggle"
+                            aria-expanded="false" aria-controls="servicePickerMenu">
+                        <span class="service-picker-icon"><i class="bi bi-briefcase"></i></span>
+                        <span class="service-picker-label">
+                            <strong id="servicePickerSummary">Choose services</strong>
+                            <small id="servicePickerHint">Select one or more services for this package</small>
+                        </span>
+                        <i class="bi bi-chevron-down service-picker-chevron" aria-hidden="true"></i>
+                    </button>
+                    <div class="service-picker-menu" id="servicePickerMenu" hidden>
+                        <div class="service-search-wrap">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <input type="search" class="service-search" id="serviceSearch"
+                                   placeholder="Search services..." aria-label="Search services">
+                        </div>
+                        <div class="service-choice-list" id="serviceChoiceList">
+                            {% for service in form.services.field.queryset %}
+                                <label class="service-choice" data-service-name="{{ service.name|lower }}">
+                                    <input type="checkbox" name="services" value="{{ service.pk }}"
+                                           id="service_{{ service.pk }}"
+                                           class="service-checkbox"
+                                           {% if form.services.value and service.pk|stringformat:"s" in form.services.value %}checked{% elif package and service.pk in package.package_items.all.values_list.0 %}checked{% endif %}>
+                                    {% if service.image %}
+                                        <img src="{{ service.image.url }}" alt="" class="service-image">
+                                    {% else %}
+                                        <span class="service-image-placeholder"><i class="bi bi-briefcase"></i></span>
+                                    {% endif %}
+                                    <span class="service-info">
+                                        <strong>{{ service.name }}</strong>
+                                        <small>{{ service.description|default:"No description provided."|truncatechars:90 }}</small>
+                                    </span>
+                                    <i class="bi bi-check-circle-fill service-check" aria-hidden="true"></i>
+                                </label>
+                            {% endfor %}
+                            <p class="service-search-empty" id="serviceSearchEmpty" hidden>No matching services found.</p>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-inline">
+                    No services are available yet. Ask an admin to add services to the shared catalog.
+                </div>
+            {% endif %}
+
+            {% for error in form.services.errors %}
+                <div class="text-danger small mt-2">{{ error }}</div>
+            {% endfor %}
+
+            <div id="priceSection" class="price-section mt-4">
+                <h4 class="fw-bold fs-6 mb-3">Selected Services & Prices</h4>
+                <div id="selectedServices">
+                    <p id="noServicesMessage" class="text-muted small mb-0">Select a service above to set its price.</p>
+                </div>
+            </div>
+
+            <div class="total-card mt-4">
+                <div>
+                    <span>Estimated Package Total</span>
+                    <small>Sum of selected service prices</small>
+                </div>
+                <strong id="packageTotal">₹0.00</strong>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mt-4">
+                <button type="submit" class="primary-btn">
+                    <i class="bi bi-check2-circle"></i>
+                    {% if package %}Save Changes{% else %}Create Package{% endif %}
+                </button>
+                <a href="{% url 'seller-packages' %}" class="btn btn-light border rounded-3 px-4">Cancel</a>
+            </div>
+        </div>
+    </section>
+</form>
+
+<link rel="stylesheet" href="{% static 'sellers/css/seller_package_form.css' %}">
+
+{{ existing_prices|json_script:"existingPackagePrices" }}
+<script src="{% static 'sellers/js/seller_package_form.js' %}"></script>
+{% endblock %}

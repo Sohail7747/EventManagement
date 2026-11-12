@@ -1,0 +1,289 @@
+{% extends "bookings/user_base.html" %}
+
+{% block title %}My Favourites | EventSphere{% endblock %}
+
+{% block user_content %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="page-heading">My Favourites <i class="bi bi-heart-fill" style="color: var(--gold);"></i></h1>
+        <p class="page-description mb-0">
+            Keep your favourite discoveries together and revisit them whenever you like.
+        </p>
+    </div>
+
+    <a href="{% url 'public-events' %}" class="btn btn-gold">
+        <i class="bi bi-compass me-1"></i> Discover More
+    </a>
+</div>
+
+<!-- Favourite summary -->
+<div class="row g-3 mb-4">
+
+    <div class="col-12 col-sm-4">
+        <div class="user-card">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div>
+                    <div class="stat-label">Saved Events</div>
+                    <div class="stat-number">{{ favourite_event_count|default:"0" }}</div>
+                </div>
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-4">
+        <div class="user-card">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div>
+                    <div class="stat-label">Saved Services</div>
+                    <div class="stat-number">{{ favourite_service_count|default:"0" }}</div>
+                </div>
+                <div class="stat-icon">
+                    <i class="bi bi-stars"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-4">
+        <div class="user-card">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div>
+                    <div class="stat-label">Saved Packages</div>
+                    <div class="stat-number">{{ favourite_package_count|default:"0" }}</div>
+                </div>
+                <div class="stat-icon">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Favourite filters -->
+<div class="user-card user-card-main mb-4">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2 class="section-title mb-1">Your Collection</h2>
+            <p class="small text-secondary mb-0">
+                Browse the items you've saved.
+            </p>
+        </div>
+
+        <form method="get" class="d-flex flex-wrap gap-2">
+            <select name="type"
+                    class="form-select form-select-sm"
+                    style="min-width: 155px; border-color: var(--border);"
+                    aria-label="Filter favourites by type">
+                <option value="">All favourites</option>
+                <option value="event" {% if selected_type == "event" %}selected{% endif %}>
+                    Events
+                </option>
+                <option value="service" {% if selected_type == "service" %}selected{% endif %}>
+                    Services
+                </option>
+                <option value="package" {% if selected_type == "package" %}selected{% endif %}>
+                    Packages
+                </option>
+            </select>
+
+            <button type="submit" class="btn btn-outline-gold btn-sm">
+                <i class="bi bi-funnel me-1"></i> Filter
+            </button>
+
+            {% if selected_type %}
+                <a href="{% url 'my-favourites' %}"
+                   class="btn btn-outline-secondary btn-sm">
+                    Clear
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {% if favourites %}
+        <div class="row g-4">
+
+            {% for favourite in favourites %}
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="h-100 rounded-3 overflow-hidden d-flex flex-column"
+                         style="border: 1px solid var(--border); background: #fff;">
+
+                        <!-- Item image -->
+                        <div class="position-relative"
+                             style="height: 190px; background: #f0ede5;">
+
+                            {% if favourite.event %}
+                                {% if favourite.event.image %}
+                                    <img src="{{ favourite.event.image.url }}"
+                                         alt="{{ favourite.event.title }}"
+                                         class="w-100 h-100"
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <div class="h-100 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-calendar-event fs-1" style="color: var(--gold);"></i>
+                                    </div>
+                                {% endif %}
+
+                            {% elif favourite.service %}
+                                {% if favourite.service.image %}
+                                    <img src="{{ favourite.service.image.url }}"
+                                         alt="{{ favourite.service.name }}"
+                                         class="w-100 h-100"
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <div class="h-100 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-stars fs-1" style="color: var(--gold);"></i>
+                                    </div>
+                                {% endif %}
+
+                            {% elif favourite.catalog_package %}
+                                {% if favourite.catalog_package.event.image %}
+                                    <img src="{{ favourite.catalog_package.event.image.url }}"
+                                         alt="{{ favourite.catalog_package.title }}"
+                                         class="w-100 h-100"
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <div class="h-100 d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-box-seam fs-1" style="color: var(--gold);"></i>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <span class="position-absolute top-0 start-0 m-3 badge rounded-pill"
+                                  style="background: rgba(38,37,34,.88); color: #fff;">
+                                {% if favourite.event %}
+                                    Event
+                                {% elif favourite.service %}
+                                    Service
+                                {% elif favourite.catalog_package %}
+                                    Package
+                                {% endif %}
+                            </span>
+
+                        </div>
+
+                        <!-- Item details -->
+                        <div class="p-3 d-flex flex-column flex-grow-1" style="min-height: 210px;">
+
+                            <h3 class="fs-6 fw-bold mb-2">
+                                {% if favourite.event %}
+                                    {{ favourite.event.title }}
+                                {% elif favourite.service %}
+                                    {{ favourite.service.name }}
+                                {% elif favourite.catalog_package %}
+                                    {{ favourite.catalog_package.title }}
+                                {% endif %}
+                            </h3>
+
+                            <p class="small text-secondary mb-3">
+                                {% if favourite.event %}
+                                    {{ favourite.event.description|truncatewords:18 }}
+                                {% elif favourite.service %}
+                                    {{ favourite.service.description|truncatewords:18 }}
+                                {% elif favourite.catalog_package %}
+                                    {{ favourite.catalog_package.description|truncatewords:18 }}
+                                {% endif %}
+                            </p>
+
+                            <div class="mt-auto pt-3 d-flex justify-content-between align-items-center gap-2"
+                                 style="border-top: 1px solid var(--border);">
+
+                                <span class="fw-bold" style="color: var(--gold-dark);">
+                                    {% if favourite.event %}
+                                        ₹{{ favourite.event.price|floatformat:2 }}
+                                    {% elif favourite.service %}
+                                        ₹{{ favourite.service.price|floatformat:2 }}
+                                    {% elif favourite.catalog_package %}
+                                        ₹{{ favourite.catalog_package.total_price|floatformat:2 }}
+                                    {% endif %}
+                                </span>
+
+                                <div class="d-flex gap-2">
+                                    {% if favourite.event %}
+                                        <a href="{% url 'public-events' %}"
+                                           class="btn btn-sm btn-outline-gold"
+                                           title="Explore events">
+                                            View
+                                        </a>
+                                    {% elif favourite.service %}
+                                        <a href="{% url 'public-services' %}"
+                                           class="btn btn-sm btn-outline-gold"
+                                           title="Explore services">
+                                            View
+                                        </a>
+                                    {% elif favourite.catalog_package %}
+                                        <a href="{% url 'public-package-detail' favourite.catalog_package.id %}"
+                                           class="btn btn-sm btn-outline-gold"
+                                           title="Book this package">
+                                            Book
+                                        </a>
+                                    {% endif %}
+
+                                    <form method="post"
+                                          action="{% url 'remove-favourite' favourite.id %}"
+                                          onsubmit="return confirm('Remove this item from your favourites?');">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Remove favourite"
+                                                aria-label="Remove favourite">
+                                            <i class="bi bi-heartbreak"></i>
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+        <div class="empty-state">
+            <i class="bi bi-heart"></i>
+
+            <h3 class="fs-6 fw-bold text-dark">
+                {% if selected_type %}
+                    No favourites in this category
+                {% else %}
+                    Your favourites list is empty
+                {% endif %}
+            </h3>
+
+            <p class="small mb-3">
+                Save events, services, and packages you love to find them here later.
+            </p>
+
+            {% if selected_type %}
+                <a href="{% url 'my-favourites' %}" class="btn btn-outline-gold">
+                    Show All Favourites
+                </a>
+            {% else %}
+                <div class="d-flex justify-content-center flex-wrap gap-2">
+                    <a href="{% url 'public-events' %}" class="btn btn-gold">
+                        Explore Events
+                    </a>
+                    <a href="{% url 'public-services' %}" class="btn btn-outline-gold">
+                        Explore Services
+                    </a>
+                    <a href="{% url 'public-packages' %}" class="btn btn-outline-gold">
+                        Explore Packages
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+
+{% extends "dashboard/base.html" %}
+
+{% block title %}Manage Events | EventPro{% endblock %}
+
+{% block content %}
+<div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2>Manage Events</h2>
+        <p>Add and manage events in the shared catalog sellers use to create packages.</p>
+    </div>
+    <a href="/events/create/"
+       class="btn btn-primary"
+       style="position:relative; z-index:9999;">
+        + Add Event
+    </a>
+</div>
+
+{% for message in messages %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endfor %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="mb-3">All Events</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Event</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>
+                            {% if event.image %}
+                                <img src="{{ event.image.url }}"
+                                     alt="{{ event.title }}"
+                                     width="65" height="50"
+                                     style="object-fit:cover;border-radius:6px;">
+                            {% else %}
+                                <span class="text-muted">No image</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ event.title }}</td>
+                        
+                        <td class="text-nowrap text-center">
+                            <a href="{% url 'event-detail' event.pk %}"
+                               class="btn btn-sm btn-outline-info"
+                               title="View Event">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'event-edit' event.pk %}"
+                               class="btn btn-sm btn-outline-primary"
+                               title="Edit Event">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <form method="post"
+                                  action="{% url 'event-delete' event.pk %}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Delete this event?');">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        title="Delete Event">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            No events have been added yet.
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+.seller-bookings-page { --seller-ink: #292e3b; --seller-muted: #798091; }
+    .seller-bookings-intro {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 22px;
+        padding: 22px 24px;
+        border: 1px solid #e8e4da;
+        border-radius: 16px;
+        background: linear-gradient(115deg, #fff, #fbf9f3);
+    }
+    .seller-bookings-intro h1 { margin: 0 0 5px; color: var(--seller-ink); font-size: 23px; font-weight: 750; }
+    .seller-bookings-intro p { margin: 0; color: var(--seller-muted); font-size: 12px; }
+    .seller-bookings-intro-icon {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 48px;
+        place-items: center;
+        border-radius: 14px;
+        background: #f5efdf;
+        color: #94733b;
+        font-size: 21px;
+    }
+    .seller-booking-card {
+        overflow: hidden;
+        border: 1px solid #e8eaf0;
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 8px 22px rgba(27, 32, 55, .045);
+    }
+    .seller-booking-card-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 19px 22px;
+        border-bottom: 1px solid #eef0f3;
+        background: #fcfcfd;
+    }
+    .seller-booking-card-header h2 { margin: 6px 0 8px; color: var(--seller-ink); font-size: 16px; font-weight: 750; }
+    .seller-booking-reference { color: #83899a; font-size: 10px; font-weight: 650; letter-spacing: .04em; }
+    .seller-booking-price { color: #282e3a; font-size: 16px; font-weight: 750; white-space: nowrap; }
+    .seller-booking-card-body { padding: 20px 22px; }
+    .seller-booking-section-label { margin-bottom: 7px; color: #7d8494; font-size: 9px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .seller-booking-detail { color: #424958; font-size: 11px; line-height: 1.65; overflow-wrap: anywhere; }
+    .seller-booking-detail + .seller-booking-detail { margin-top: 2px; }
+    .seller-booking-service {
+        display: inline-flex;
+        margin: 2px 4px 2px 0;
+        padding: 5px 8px;
+        border: 1px solid #ece8df;
+        border-radius: 7px;
+        background: #fbfaf7;
+        color: #595647;
+        font-size: 10px;
+    }
+    .seller-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: #fff3df;
+        color: #9a5b11;
+        font-size: 9px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+    .seller-status-pill.is-complete { background: #e7f6ec; color: #277247; }
+    .seller-status-pill.is-review { background: #edf0ff; color: #4e5eaa; }
+    .seller-completion-panel {
+        padding: 14px 16px;
+        border: 1px solid #eceef2;
+        border-radius: 11px;
+        background: #fafbfc;
+    }
+    .seller-completion-panel.is-complete { border-color: #c9e6d2; background: #f4fbf6; }
+    .seller-completion-panel.is-review { border-color: #d9defa; background: #f7f8ff; }
+    .seller-bookings-empty {
+        padding: 48px 20px;
+        border: 1px dashed #dfe2e8;
+        border-radius: 15px;
+        background: #fff;
+        color: #7b8190;
+        text-align: center;
+    }
+    .seller-bookings-empty i { display: block; margin-bottom: 12px; color: #b0b5c0; font-size: 28px; }
+    @media (max-width: 575px) {
+        .seller-bookings-intro { padding: 18px; }
+        .seller-booking-card-header, .seller-booking-card-body { padding: 16px; }
+    }

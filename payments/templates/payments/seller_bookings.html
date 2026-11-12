@@ -1,0 +1,146 @@
+{% extends "sellers/seller_base.html" %}
+{% load static %}
+
+{% block title %}Bookings | Seller Dashboard{% endblock %}
+{% block page_heading %}Bookings{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'payments/css/seller_bookings.css' %}">
+
+<main class="seller-bookings-page">
+    <header class="seller-bookings-intro">
+        <div>
+            <h1>Bookings &amp; completion</h1>
+            <p>Review requests, track each completion step, and see when admin approval unlocks your payout.</p>
+        </div>
+        <span class="seller-bookings-intro-icon"><i class="bi bi-journal-check"></i></span>
+    </header>
+
+{% for decision in decisions %}
+    {% with booking=decision.booking %}
+        <article class="seller-booking-card mb-3">
+            <div class="seller-booking-card-header">
+                <div>
+                    <span class="seller-booking-reference">BOOKING #{{ booking.pk }} · {{ booking.created_at|date:"d M Y" }}</span>
+                    <h2>{{ booking.item_title }}</h2>
+                    <span class="seller-status-pill {% if decision.is_completion_complete %}is-complete{% elif booking.customer_confirmed_at %}is-review{% endif %}">
+                        {% if decision.is_completion_complete %}
+                            <i class="bi bi-patch-check-fill"></i> Complete · admin approved
+                        {% elif booking.customer_confirmed_at %}
+                            <i class="bi bi-hourglass-split"></i> Customer confirmed · admin review
+                        {% elif decision.seller_completed_at %}
+                            <i class="bi bi-hourglass-split"></i> Seller complete · awaiting customer
+                        {% else %}
+                            <i class="bi bi-{% if decision.status == 'PENDING' %}hourglass-split{% else %}clock{% endif %}"></i>
+                            {% if decision.status == "PENDING" %}{{ decision.get_status_display }} response{% else %}Completion pending{% endif %}
+                        {% endif %}
+                    </span>
+                </div>
+                <strong class="seller-booking-price">₹{{ booking.total_price|floatformat:2 }}</strong>
+            </div>
+
+            <div class="seller-booking-card-body">
+              <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="seller-booking-section-label">Customer</div>
+                    <div class="seller-booking-detail fw-semibold">{{ booking.customer_name|default:booking.user.get_full_name|default:booking.user.username }}</div>
+                    <div class="seller-booking-detail text-secondary">{{ booking.customer_email|default:booking.user.email }}</div>
+                    {% if booking.customer_phone %}<div class="seller-booking-detail text-secondary">{{ booking.customer_phone }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                    <div class="seller-booking-section-label">Booking details</div>
+                    <div class="seller-booking-detail fw-semibold">
+                        {% if booking.package_event %}{{ booking.package_event.title }}
+                        {% elif booking.event %}{{ booking.event.title }}
+                        {% elif booking.service %}{{ booking.service.name }}
+                        {% elif booking.custom_package %}{{ booking.item_title }}
+                        {% else %}{{ booking.item_title }}{% endif %}
+                    </div>
+                    <div class="seller-booking-detail text-secondary">
+                        {{ booking.booking_date|date:"d M Y" }}
+                        {% if booking.booking_end_date %} – {{ booking.booking_end_date|date:"d M Y" }}{% endif %}
+                        · {{ booking.guest_count }} guests
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="seller-booking-section-label">Your services</div>
+                    <div class="seller-booking-detail">
+                        {% if booking.custom_package %}
+                            {% for item in booking.custom_package.package_services.all %}
+                                {% if item.seller_id == decision.seller_id or item.service.seller_id == decision.seller_id %}
+                                    <span class="seller-booking-service">{{ item.service.name }} · ₹{{ item.selected_price|floatformat:2 }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% for service in booking.package_services.all %}<span class="seller-booking-service">{{ service.name }}</span>{% empty %}<span class="seller-booking-service">{{ booking.service.name|default:"Event package" }}</span>{% endfor %}
+                        {% endif %}
+                    </div>
+                    {% if booking.customer_notes %}
+                        <div class="seller-booking-detail mt-2"><strong>Customer notes:</strong> {{ booking.customer_notes }}</div>
+                    {% endif %}
+                </div>
+                {% if decision.rejection_reason %}
+                    <div class="col-12 text-danger small"><strong>Rejection reason:</strong> {{ decision.rejection_reason }}</div>
+                {% endif %}
+              </div>
+
+              {% if decision.status == "ACCEPTED" and booking.status == "CONFIRMED" or decision.is_completion_complete %}
+                <div class="seller-completion-panel mt-4 {% if decision.is_completion_complete %}is-complete{% elif booking.customer_confirmed_at %}is-review{% endif %}">
+                    {% if decision.is_completion_complete %}
+                        <div class="d-flex align-items-start gap-2 text-success">
+                            <i class="bi bi-patch-check-fill mt-1"></i>
+                            <div><strong>Completion approved by admin</strong><div class="small mt-1">This booking is complete. Your seller share is reflected in Transactions &amp; Payouts.</div></div>
+                        </div>
+                    {% elif booking.customer_confirmed_at %}
+                        <div class="d-flex align-items-start gap-2 text-primary">
+                            <i class="bi bi-hourglass-split mt-1"></i>
+                            <div><strong>Awaiting admin approval</strong><div class="small mt-1">Customer confirmed on {{ booking.customer_confirmed_at|date:"d M Y, H:i" }}. Earnings become requestable after admin approves completion.</div></div>
+                        </div>
+                    {% elif decision.seller_completed_at %}
+                        <div class="d-flex align-items-start gap-2 text-secondary">
+                            <i class="bi bi-hourglass-split mt-1"></i>
+                            <div><strong>You reported this event complete</strong><div class="small mt-1">Reported {{ decision.seller_completed_at|date:"d M Y, H:i" }}. Waiting for the customer to confirm delivery.</div></div>
+                        </div>
+                    {% elif decision.event_has_ended %}
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div><strong class="d-block text-dark">Mark your service complete</strong><span class="small text-secondary">The event has ended. The customer will confirm before admin review.</span></div>
+                            <form method="post" action="{% url 'seller-report-booking-completion' booking.pk %}">
+                                {% csrf_token %}
+                                <button class="btn btn-success btn-sm px-3" type="submit">
+                                    <i class="bi bi-check2-circle me-1"></i>Mark complete
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="d-flex align-items-start gap-2 text-secondary">
+                            <i class="bi bi-calendar-event mt-1"></i>
+                            <div><strong>Completion pending</strong><div class="small mt-1">You can mark this booking complete after the event ends.</div></div>
+                        </div>
+                    {% endif %}
+                </div>
+              {% endif %}
+
+                {% if decision.status == "PENDING" and booking.status != "CANCELLED" and booking.status != "COMPLETED" and booking.status != "REJECTED" %}
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <form method="post" action="{% url 'seller-booking-decision' booking.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="accept">
+                        <button class="btn btn-success btn-sm" type="submit">Accept booking</button>
+                    </form>
+                    <form method="post" action="{% url 'seller-booking-decision' booking.pk %}" class="d-flex flex-wrap gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reject">
+                        <input class="form-control form-control-sm" name="rejection_reason"
+                               placeholder="Reason required to reject" required>
+                        <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </article>
+    {% endwith %}
+{% empty %}
+    <div class="seller-bookings-empty"><i class="bi bi-calendar2-check"></i><strong class="d-block text-dark">No bookings yet</strong><span class="small">Requests for your events and services will appear here.</span></div>
+{% endfor %}
+</main>
+{% endblock %}

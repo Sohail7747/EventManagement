@@ -1,0 +1,203 @@
+{% extends "home/public_base.html" %}
+{% load static %}
+
+{% block title %}Create Your Package | EventSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'packages/css/package_selection.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="public-page section-space package-builder">
+    <div class="container">
+        <div class="eyebrow"><span></span> BUILD YOUR EVENT</div>
+        <h1 class="section-heading">Create your <em>package</em></h1>
+        <p class="section-subtitle mb-4">
+            Set a budget range for each service, then choose a seller offering that fits.
+            Your package total updates as you build.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" id="packageBuilderForm">
+            {% csrf_token %}
+
+            <section class="builder-section" aria-labelledby="event-options-heading">
+                <div class="builder-section-heading">
+                    <span class="builder-step">01</span>
+                    <div>
+                        <h2 id="event-options-heading">Choose an event</h2>
+                        <p>Select one registered event for your package.</p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    {% for event in events %}
+                        <div class="col-12 col-md-6 col-xl-4">
+                            <label class="event-option" for="event-{{ event.pk }}">
+                                <input
+                                    class="event-option-input"
+                                    id="event-{{ event.pk }}"
+                                    type="radio"
+                                    name="event_id"
+                                    value="{{ event.pk }}"
+                                    data-event-title="{{ event.title }}"
+                                    data-event-price="{{ event.price }}"
+                                    {% if selected_event_id == event.pk|stringformat:"s" %}checked{% endif %}
+                                    required
+                                >
+                                {% if event.image %}
+                                    <img class="event-option-image" src="{{ event.image.url }}" alt="" loading="lazy">
+                                {% else %}
+                                    <span class="event-option-image event-option-placeholder" aria-hidden="true">
+                                        <i class="bi bi-calendar2-heart"></i>
+                                    </span>
+                                {% endif %}
+                                <span class="event-option-details">
+                                    <strong>{{ event.title }}</strong>
+                                    <span>{{ event.location|default:"Location to be confirmed" }}</span>
+                                    <span>{{ event.event_date|date:"d M Y" }}</span>
+                                    <span class="event-option-price">₹{{ event.price|floatformat:2 }}</span>
+                                    <span class="event-option-seller">{{ event.seller.business_name|default:"EventSphere" }}</span>
+                                </span>
+                                <span class="event-option-check" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                            </label>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <div class="builder-empty">No events are registered yet.</div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="event-date" class="form-label fw-semibold">Your event date</label>
+                        <input
+                            class="form-control"
+                            id="event-date"
+                            name="event_date"
+                            type="date"
+                            min="{{ today|date:'Y-m-d' }}"
+                            value="{{ request.POST.event_date|default:'' }}"
+                            required
+                        >
+                    </div>
+                </div>
+            </section>
+
+            <section class="builder-section" aria-labelledby="service-options-heading">
+                <div class="builder-section-heading">
+                    <span class="builder-step">02</span>
+                    <div>
+                        <h2 id="service-options-heading">Choose services</h2>
+                        <p>Set a price range for each service type to see matching seller offerings. Choose one offering per type.</p>
+                    </div>
+                </div>
+
+                {% for category in service_categories %}
+                    <details class="service-category" {% if forloop.first %}open{% endif %}>
+                        <summary>
+                            <span>{{ category.name }}</span>
+                            <span class="service-category-hint">{{ category.services|length }} package offering{{ category.services|length|pluralize }}</span>
+                        </summary>
+                        <div class="service-budget-fields">
+                            <div>
+                                <label for="budget-min-{{ category.id }}">Minimum budget (₹)</label>
+                                <input
+                                    class="form-control service-budget-input service-budget-min"
+                                    id="budget-min-{{ category.id }}"
+                                    name="budget_min_{{ category.id }}"
+                                    type="number"
+                                    min="0"
+                                    max="99999999.99"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    value="{{ category.min_price|default:'' }}"
+                                >
+                            </div>
+                            <div>
+                                <label for="budget-max-{{ category.id }}">Maximum budget (₹)</label>
+                                <input
+                                    class="form-control service-budget-input service-budget-max"
+                                    id="budget-max-{{ category.id }}"
+                                    name="budget_max_{{ category.id }}"
+                                    type="number"
+                                    min="0"
+                                    max="99999999.99"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    value="{{ category.max_price|default:'' }}"
+                                >
+                            </div>
+                        </div>
+                        <p class="service-no-matches" hidden>
+                            Enter a valid budget range to see matching offerings.
+                        </p>
+                        <div class="row g-3 service-options">
+                            {% for offering in category.services %}
+                                <div class="col-12 col-md-6 col-xl-4 service-option-column" hidden>
+                                    <label class="service-option" for="service-{{ offering.pk }}">
+                                        <input
+                                            class="service-option-input"
+                                            id="service-{{ offering.pk }}"
+                                            type="checkbox"
+                                            name="services"
+                                            value="{{ offering.pk }}"
+                                            data-category="{{ category.id }}"
+                                            data-service-name="{{ offering.service.name }}"
+                                            data-service-price="{{ offering.selected_price }}"
+                                            data-service-package="{{ offering.package.title }}"
+                                            data-service-seller="{{ offering.package.seller.business_name }}"
+                                            {% if offering.pk|stringformat:"s" in selected_service_ids %}checked{% endif %}
+                                        >
+                                        <span class="service-option-check" aria-hidden="true">
+                                            <i class="bi bi-check-lg"></i>
+                                        </span>
+                                        <span class="service-option-details">
+                                            <strong>{{ offering.service.name }}</strong>
+                                            <span>Package: {{ offering.package.title }}</span>
+                                            <span>Seller: {{ offering.package.seller.business_name }}</span>
+                                            <span class="service-option-description">{{ offering.service.description|truncatechars:100 }}</span>
+                                            <span class="service-option-price">₹{{ offering.selected_price|floatformat:2 }}</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% empty %}
+                    <div class="builder-empty">No seller services are available yet.</div>
+                {% endfor %}
+            </section>
+
+            <section class="package-summary" aria-labelledby="package-summary-heading" aria-live="polite">
+                <div class="package-summary-content">
+                    <div>
+                        <span class="summary-label">PACKAGE SUMMARY</span>
+                        <h2 id="package-summary-heading">Your selections</h2>
+                    </div>
+                    <ul id="packageSummaryItems" class="package-summary-items">
+                        <li class="summary-empty">Choose an event and services to see your package here.</li>
+                    </ul>
+                </div>
+                <div class="package-summary-total">
+                    <span>Total package price</span>
+                    <strong id="packageTotal">₹0.00</strong>
+                    <button class="btn btn-gold" id="createPackageButton" type="submit">
+                        <i class="bi bi-box-seam"></i> Create package
+                    </button>
+                </div>
+            </section>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'packages/js/package_selection.js' %}" defer></script>
+{% endblock %}

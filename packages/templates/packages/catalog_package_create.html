@@ -1,0 +1,199 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Create Package | EventPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Create Package</h2>
+        <p class="text-muted mb-0">
+            Combine one event with multiple services.
+        </p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body p-4">
+
+            <form method="post" id="packageForm">
+                {% csrf_token %}
+
+                <!-- PACKAGE TITLE -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Package Title</label>
+                    {{ form.title }}
+                    {% for error in form.title.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- PACKAGE DESCRIPTION -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Package Description</label>
+                    {{ form.description }}
+                    {% for error in form.description.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <hr>
+
+                <!-- 1. SELLER -->
+                <div class="selection-section">
+                    <button type="button" class="section-toggle"
+                            data-target="sellerSection" aria-expanded="false">
+                        <span>1. Assign One Seller</span>
+                        <span class="toggle-arrow">＋</span>
+                    </button>
+
+                    <div id="sellerSection" class="section-panel">
+                        {% for seller in form.seller.field.queryset %}
+                            <label class="choice-row">
+                                <input type="radio"
+                                       name="seller"
+                                       value="{{ seller.pk }}"
+                                       class="form-check-input"
+                                       {% if form.seller.value|stringformat:"s" == seller.pk|stringformat:"s" %}checked{% endif %}
+                                       required>
+                                <span>
+                                    <strong>{{ seller.business_name }}</strong>
+                                    <small class="d-block text-muted">
+                                        {{ seller.user.username }}
+                                    </small>
+                                </span>
+                            </label>
+                        {% empty %}
+                            <p class="text-muted">No sellers available. Please register a seller first.</p>
+                        {% endfor %}
+
+                        {% for error in form.seller.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- 2. EVENT -->
+                <div class="selection-section">
+                    <button type="button" class="section-toggle"
+                            data-target="eventSection" aria-expanded="false">
+                        <span>2. Choose One Event</span>
+                        <span class="toggle-arrow">＋</span>
+                    </button>
+
+                    <div id="eventSection" class="section-panel">
+                        {% for event in form.event.field.queryset %}
+                            <label class="choice-row">
+                                <input type="radio"
+                                       name="event"
+                                       value="{{ event.pk }}"
+                                       class="form-check-input"
+                                       {% if form.event.value|stringformat:"s" == event.pk|stringformat:"s" %}checked{% endif %}
+                                       required>
+                                <span>{{ event.title }}</span>
+                            </label>
+                        {% empty %}
+                            <p class="text-muted">No events available. Please create an event first.</p>
+                        {% endfor %}
+
+                        {% for error in form.event.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- 3. SERVICES -->
+                <div class="selection-section">
+                    <button type="button" class="section-toggle"
+                            data-target="serviceSection" aria-expanded="false">
+                        <span>3. Choose Services and Set Prices</span>
+                        <span class="toggle-arrow">＋</span>
+                    </button>
+
+                    <div id="serviceSection" class="section-panel">
+                        <p class="text-muted small mb-3">
+                            Select services and enter their prices below.
+                        </p>
+
+                        {% for service in form.services.field.queryset %}
+                            <label class="choice-row">
+                                <input type="checkbox"
+                                       name="services"
+                                       value="{{ service.pk }}"
+                                       id="service_{{ service.pk }}"
+                                       class="form-check-input service-checkbox">
+
+                                {% if service.image %}
+                                    <img src="{{ service.image.url }}"
+                                         alt="{{ service.name }}"
+                                         class="service-image">
+                                {% endif %}
+
+                                <span>
+                                    <strong>{{ service.name }}</strong>
+                                    <small class="d-block text-muted">
+                                        {{ service.description }}
+                                    </small>
+                                </span>
+                            </label>
+                        {% empty %}
+                            <p class="text-muted">No services available. Please create a service first.</p>
+                        {% endfor %}
+
+                        {% for error in form.services.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- SELECTED SERVICES -->
+                <div class="card border-0 shadow-sm my-4">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Selected Services</h5>
+
+                        <div id="selectedServices">
+                            <p id="noServicesMessage" class="text-muted mb-0">
+                                No services selected yet.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOTAL -->
+                <div class="bg-light rounded p-3 my-4">
+                    <div class="d-flex justify-content-between align-items-center gap-3">
+                        <span class="fw-semibold">Estimated Package Total</span>
+                        <span class="fs-4 fw-bold text-success" id="packageTotal">₹0.00</span>
+                    </div>
+                    <small class="text-muted">Total of selected service prices.</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary px-4">
+                    Create Package
+                </button>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="{% static 'packages/css/catalog_package_create.css' %}">
+
+<script src="{% static 'packages/js/catalog_package_create.js' %}"></script>
+{% endblock %}

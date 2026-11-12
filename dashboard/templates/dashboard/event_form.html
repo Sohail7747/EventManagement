@@ -1,0 +1,62 @@
+
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ page_title }} | EventPro{% endblock %}
+
+{% block content %}
+<div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+        <h2>Create Events</h2>
+        <p>Create new event for Sellers.</p>
+    </div>
+    <a href="/events/"
+       class="btn btn-primary"
+       style="position:relative; z-index:9999;">
+       <i class="bi bi-arrow-left"></i>
+        Back to Events
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            {% if editing_event and editing_event.image %}
+                <p>Current image:</p>
+                <img src="{{ editing_event.image.url }}"
+                     alt="{{ editing_event.title }}"
+                     width="140" class="rounded mb-3">
+            {% endif %}
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i>
+                {% if editing_event %}Update Event{% else %}Create Event{% endif %}
+            </button>
+
+            <a href="{% url 'admin-events' %}"
+               class="btn btn-outline-secondary">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+
+{% extends "dashboard/base.html" %}
+
+{% block title %}Package Details | EventPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">{{ package.title }}</h2>
+            <p class="text-muted mb-0">Complete package information</p>
+        </div>
+
+        <a href="{% url 'dashboard' %}"
+           class="btn btn-outline-secondary">
+            &larr; Back to Packages
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Package Information</h5>
+
+            <p class="mb-2">
+                <strong>Title:</strong> {{ package.title }}
+            </p>
+
+            <p class="mb-0">
+                <strong>Description:</strong>
+                {{ package.description|default:"No description provided." }}
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Selected Event</h5>
+
+                    {% if package.event.image %}
+                        <img
+                            src="{{ package.event.image.url }}"
+                            alt="{{ package.event.title }}"
+                            class="img-fluid rounded mb-3"
+                            style="width:100%;max-height:260px;object-fit:cover;"
+                        >
+                    {% endif %}
+
+                    <h6 class="fw-bold">{{ package.event.title }}</h6>
+
+                    <p class="text-muted">
+                        {{ package.event.description|default:"No description available." }}
+                    </p>
+
+                    <div class="d-flex justify-content-between border-top pt-3">
+                        <span>Event Price</span>
+                        <strong>₹{{ package.event.price|floatformat:2 }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Assigned Seller</h5>
+
+                    <p class="mb-2">
+                        <strong>Business Name:</strong>
+                        {{ package.seller.business_name }}
+                    </p>
+
+                    <p class="mb-2">
+                        <strong>Seller Email:</strong>
+                        {{ package.seller.user.email }}
+                    </p>
+
+                    <p class="mb-2">
+                        <strong>Phone:</strong>
+                        {{ package.seller.phone|default:"Not provided" }}
+                    </p>
+
+                    <p class="mb-0">
+                        <strong>Address:</strong>
+                        {{ package.seller.address|default:"Not provided" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+
+            <h5 class="fw-bold mb-3">Included Services</h5>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Description</th>
+                            <th class="text-end">Package Price</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in package.package_items.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        {% if item.service.image %}
+                                            <img
+                                                src="{{ item.service.image.url }}"
+                                                alt="{{ item.service.name }}"
+                                                class="rounded"
+                                                style="width:65px;height:55px;object-fit:cover;"
+                                            >
+                                        {% endif %}
+
+                                        <strong>{{ item.service.name }}</strong>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {{ item.service.description|default:"—" }}
+                                </td>
+
+                                <td class="text-end fw-semibold">
+                                    ₹{{ item.selected_price|floatformat:2 }}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-4">
+                                    No services included in this package.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
+                    <tfoot>
+                        <tr>
+                            <th colspan="2" class="text-end">
+                                Services Total
+                            </th>
+                            <th class="text-end fs-5 text-success">
+                                ₹{{ package.total_price|floatformat:2 }}
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="text-muted small">
+        Created on {{ package.created_at|date:"d M Y, h:i A" }}
+    </div>
+
+</div>
+{% endblock %}

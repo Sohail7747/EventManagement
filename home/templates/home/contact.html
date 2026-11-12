@@ -1,0 +1,109 @@
+{% extends "home/public_base.html" %}
+
+{% block title %}{{ page.title|default:"Contact Us" }} | EventSphere{% endblock %}
+
+{% block content %}
+<section class="public-page section-space">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-5">
+                <div class="eyebrow"><span></span> GET IN TOUCH</div>
+                <h1 class="section-heading">
+                    Let's talk about your <em>next celebration.</em>
+                </h1>
+                {% if page %}
+                    <div class="mt-4">{{ page.content|linebreaks }}</div>
+                {% else %}
+                    <p class="mt-4">
+                        Have a question about EventSphere or need help getting
+                        started? Send us a message using the form.
+                    </p>
+                {% endif %}
+
+                <div class="contact-detail mt-4">
+                    <i class="bi bi-envelope"></i>
+                    <div>
+                        <strong>Contact form</strong>
+                        <p>Send your enquiry using the form on this page.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="contact-form-card">
+                    <h2 class="mb-4">Send us a message</h2>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert
+                                {% if message.tags == 'success' %}alert-success
+                                {% else %}alert-warning{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if not request.user.is_authenticated %}
+                        <div class="alert alert-warning d-flex align-items-center gap-2 mb-4 rounded-3 shadow-sm" role="alert">
+                            <i class="bi bi-shield-lock-fill fs-5 text-warning"></i>
+                            <div>
+                                <strong>Login Required:</strong> You must be signed in to send a message.
+                                <a href="{% url 'accounts-login-page' %}?next={% url 'contact' %}" class="alert-link fw-semibold text-decoration-underline ms-1">Log in here</a>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Your name</label>
+                            <input type="text" id="name" name="name"
+                                   class="form-control" maxlength="100"
+                                   value="{{ initial_name|default:'' }}"
+                                   {% if not request.user.is_authenticated %}disabled placeholder="Please log in first"{% else %}required placeholder="Enter your full name"{% endif %}>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" id="email" name="email"
+                                   class="form-control" maxlength="254"
+                                   value="{{ initial_email|default:'' }}"
+                                   {% if not request.user.is_authenticated %}disabled placeholder="Please log in first"{% else %}required placeholder="Enter your email address"{% endif %}>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" id="subject" name="subject"
+                                   class="form-control" maxlength="200"
+                                   {% if not request.user.is_authenticated %}disabled placeholder="Please log in first"{% else %}required placeholder="What is this regarding?"{% endif %}>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea id="message" name="message"
+                                      class="form-control" rows="5"
+                                      {% if not request.user.is_authenticated %}disabled placeholder="Please log in to your account to compose and send your message."{% else %}required placeholder="Write your message here..."{% endif %}></textarea>
+                        </div>
+
+                        {% if request.user.is_authenticated %}
+                            <button type="submit" class="btn btn-gold">
+                                Send Message <i class="bi bi-arrow-up-right"></i>
+                            </button>
+                        {% else %}
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-gold opacity-50" disabled aria-disabled="true" title="Please log in to send message">
+                                    Send Message <i class="bi bi-lock-fill"></i>
+                                </button>
+                                <a href="{% url 'accounts-login-page' %}?next={% url 'contact' %}" class="btn btn-outline-gold">
+                                    Log In <i class="bi bi-box-arrow-in-right ms-1"></i>
+                                </a>
+                            </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

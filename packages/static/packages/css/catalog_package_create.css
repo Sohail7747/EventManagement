@@ -1,0 +1,111 @@
+.selection-section {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        overflow: hidden;
+    }
+
+    .section-toggle {
+        width: 100%;
+        border: none;
+        background: #fff;
+        padding: 17px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .section-toggle:hover,
+    .section-toggle[aria-expanded="true"] {
+        background: #f0f6ff;
+        color: #0d6efd;
+    }
+
+    .toggle-arrow {
+        font-size: 20px;
+        font-weight: normal;
+    }
+
+    .section-panel {
+        display: none;
+        padding: 16px;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .section-panel.is-open {
+        display: block;
+    }
+
+    .choice-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px;
+        margin-bottom: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .choice-row:hover {
+        border-color: #0d6efd;
+        background: #f8fbff;
+    }
+
+    .choice-row:has(input:checked) {
+        border-color: #0d6efd;
+        background: #eef5ff;
+    }
+
+    .service-image {
+        width: 55px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: 7px;
+    }
+
+    .selected-service-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        padding: 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .selected-service-name {
+        font-weight: 600;
+        overflow-wrap: anywhere;
+        flex: 1;
+    }
+
+    .selected-service-price {
+        width: 160px;
+        flex-shrink: 0;
+    }
+
+    .remove-service-btn {
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 576px) {
+        .selected-service-row {
+            align-items: stretch;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .selected-service-name {
+            min-width: 60%;
+        }
+
+        .selected-service-price {
+            width: 100%;
+        }
+    }

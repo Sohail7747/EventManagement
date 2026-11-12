@@ -1,0 +1,77 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ event.title }} | EventSphere Admin{% endblock %}
+{% block page_heading %}Event Details{% endblock %}
+
+{% block content %}
+
+<div class="welcome-row">
+    <div>
+        <h1>{{ event.title }}</h1>
+        <p>View the complete information for this event.</p>
+    </div>
+
+    <a href="{% url 'admin-events' %}"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Back to Events
+    </a>
+</div>
+
+<section class="panel">
+
+    <div class="panel-header">
+        <h2>
+            <i class="bi bi-calendar-event me-2 text-muted"></i>
+            Event Details
+        </h2>
+
+        <a href="{% url 'event-edit' event.id %}"
+           class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i>
+            Edit Event
+        </a>
+    </div>
+
+    <div class="p-4">
+
+        {% if event.image %}
+            <div class="mb-4">
+                <img
+                    src="{{ event.image.url }}"
+                    alt="{{ event.title }}"
+                    style="width:100%; max-height:350px; object-fit:cover; border-radius:12px;"
+                >
+            </div>
+        {% endif %}
+
+        <h3 class="mb-3 fw-bold">{{ event.title }}</h3>
+
+            <hr class="my-4">
+
+        {% if event.seller %}
+            <div class="mb-3">
+                <i class="bi bi-shop me-2 text-muted"></i>
+                <strong>Seller:</strong>
+                {{ event.seller.business_name|default:event.seller.user.username }}
+            </div>
+        {% endif %}
+
+        <h5 class="fw-bold mb-3">Description</h5>
+
+        <p style="white-space:pre-line;">{{ event.description|default:"No description provided." }}</p>
+
+        <p class="text-secondary small mt-4 mb-0">
+            <i class="bi bi-clock me-1"></i>
+            Created:
+            {% if event.created_at %}
+                {{ event.created_at|date:"d M Y, h:i A" }}
+            {% else %}
+                Not available
+            {% endif %}
+        </p>
+
+    </div>
+</section>
+
+{% endblock %}

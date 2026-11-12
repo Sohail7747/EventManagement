@@ -1,0 +1,146 @@
+{% extends "home/public_base.html" %}
+
+{% block title %}Event Packages | EventSphere{% endblock %}
+
+{% block content %}
+<section class="public-page section-space">
+    <div class="container">
+        <div class="eyebrow"><span></span> CURATED WITH CARE</div>
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <h1 class="section-heading">Explore Our <em>Packages</em></h1>
+                <p class="section-subtitle mb-0">
+                    Explore event packages and the services included in each one.
+                </p>
+            </div>
+            <a href="{% url 'package-selection' %}" class="btn btn-gold">
+                <i class="bi bi-plus-lg me-1"></i>Create your package
+            </a>
+        </div>
+
+        <form method="get" class="listing-filter mb-4" role="search">
+            <div class="row g-2 align-items-end">
+                <div class="col-lg-7">
+                    <label class="form-label" for="package-search">Search packages</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input class="form-control" id="package-search" name="q"
+                               type="search" value="{{ search_query }}"
+                               placeholder="Try a package, event, or service">
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <label class="form-label" for="package-event">Event type</label>
+                    <select class="form-select" id="package-event" name="event">
+                        <option value="">All events</option>
+                        {% for event in events %}
+                            <option value="{{ event.id }}"
+                                {% if selected_event == event.id|stringformat:"s" %}selected{% endif %}>
+                                {{ event.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-2 d-flex gap-2">
+                    <button class="btn btn-gold flex-grow-1" type="submit">Filter</button>
+                    {% if search_query or selected_event %}
+                        <a class="btn btn-outline-secondary" href="{% url 'public-packages' %}"
+                           aria-label="Clear package filters"><i class="bi bi-x-lg"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+
+        <div class="row g-4">
+            {% for package in packages %}
+            <div class="col-md-6 col-lg-4">
+                <article class="package-card h-100">
+                    <div class="package-image">
+                        {% if package.event.image %}
+                            <img src="{{ package.event.image.url }}" alt="{{ package.title }}">
+                        {% else %}
+                            <div class="image-placeholder package-placeholder">
+                                <i class="bi bi-gift"></i>
+                            </div>
+                        {% endif %}
+                        <span class="package-badge">CURATED PACKAGE</span>
+                        {% include "home/_package_favourite_button.html" %}
+                    </div>
+
+                    <div class="package-body">
+                        <span class="package-event">{{ package.event.title }}</span>
+                        <h3>{{ package.title }}</h3>
+                        {% if package.rating_average %}
+                            <span class="small text-warning">{{ package.rating_average|floatformat:1 }} ★ <span class="text-secondary">({{ package.review_count }} review{{ package.review_count|pluralize }})</span></span>
+                        {% else %}
+                            <span class="small text-secondary">Not yet reviewed</span>
+                        {% endif %}
+                        <p>{{ package.description|truncatewords:25 }}</p>
+
+                        <div class="included-list">
+                            {% for item in package.package_items.all|slice:":5" %}
+                                <span>
+                                    <i class="bi bi-check2"></i>
+                                    {{ item.service.name }}
+                                </span>
+                            {% empty %}
+                                <span>Package details coming soon</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="package-footer">
+                            <div>
+                                <span class="price-caption">Package price</span>
+                                <strong>₹{{ package.total_price|floatformat:2 }}</strong>
+                                <span class="d-block small text-secondary">
+                                    + ₹150 per guest
+                                </span>
+                            </div>
+                            <a href="{% url 'public-package-detail' package.id %}"
+                               class="btn btn-gold">
+                                Book package
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="empty-state">
+                    <i class="bi bi-gift"></i>
+                    <h3>{% if search_query or selected_event %}No matching packages{% else %}Packages coming soon{% endif %}</h3>
+                    <p>{% if search_query or selected_event %}Try a different search or clear your filters.{% else %}Our sellers' curated packages will appear here.{% endif %}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="mt-5" aria-label="Package pages">
+                <ul class="pagination justify-content-center flex-wrap">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ search_query|urlencode }}&amp;event={{ selected_event|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    {% for page_number in page_range %}
+                        {% if page_number == page_obj.paginator.ELLIPSIS %}
+                            <li class="page-item disabled"><span class="page-link">{{ page_number }}</span></li>
+                        {% else %}
+                            <li class="page-item {% if page_number == page_obj.number %}active{% endif %}">
+                                <a class="page-link" href="?q={{ search_query|urlencode }}&amp;event={{ selected_event|urlencode }}&amp;page={{ page_number }}"
+                                   {% if page_number == page_obj.number %}aria-current="page"{% endif %}>{{ page_number }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?q={{ search_query|urlencode }}&amp;event={{ selected_event|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

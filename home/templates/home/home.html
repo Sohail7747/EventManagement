@@ -1,0 +1,511 @@
+{% extends "home/public_base.html" %}
+{% load static %}
+
+{% block title %}Home | EventSphere{% endblock %}
+
+{% block extra_css %}
+<link rel="preload" as="image" href="{% static 'home/images/hero-wedding.webp' %}" fetchpriority="high">
+{% endblock %}
+
+{% block content %}
+
+<header class="hero-section" id="home" data-hero-slider>
+    <div class="hero-slides" aria-hidden="true">
+        <div class="hero-slide is-active"
+             style="--hero-image: url('{% static 'home/images/hero-wedding.webp' %}')"></div>
+        <div class="hero-slide"
+             style="--hero-image: url('{% static 'home/images/hero-celebration.webp' %}')"></div>
+        <div class="hero-slide"
+             style="--hero-image: url('{% static 'home/images/hero-event.webp' %}')"></div>
+    </div>
+    <div class="hero-overlay"></div>
+
+    <div class="container hero-content">
+        <div class="hero-copy">
+            <div class="hero-content-slide is-active" data-hero-content aria-hidden="false">
+                <div class="eyebrow hero-eyebrow"><span></span> YOUR MOMENT. OUR PASSION.</div>
+                <h1>Every celebration<br>deserves to be <em>extraordinary.</em></h1>
+                <p class="hero-description">
+                    From intimate gatherings to unforgettable celebrations,
+                    discover the people, services and ideas that bring your vision to life.
+                </p>
+                <div class="hero-actions">
+                    <a href="#packages" class="btn btn-gold btn-lg">
+                        Explore Packages <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                    <a href="#services" class="hero-secondary-link">
+                        Discover our services <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="hero-note">
+                    <i class="bi bi-stars"></i>
+                    Thoughtfully curated. Beautifully celebrated.
+                </div>
+            </div>
+            <div class="hero-content-slide" data-hero-content aria-hidden="true">
+                <div class="eyebrow hero-eyebrow"><span></span> THE PEOPLE BEHIND THE MAGIC</div>
+                <h1>Find your people.<br><em>Create your moment.</em></h1>
+                <p class="hero-description">
+                    Discover event professionals and thoughtful services that make
+                    your celebration feel unmistakably yours.
+                </p>
+                <div class="hero-actions">
+                    <a href="#services" class="btn btn-gold btn-lg">
+                        Meet the services <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                    <a href="{% url 'public-events' %}" class="hero-secondary-link">
+                        Browse events <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="hero-note">
+                    <i class="bi bi-stars"></i>
+                    Great moments begin with the right details.
+                </div>
+            </div>
+            <div class="hero-content-slide" data-hero-content aria-hidden="true">
+                <div class="eyebrow hero-eyebrow"><span></span> YOUR NEXT CHAPTER STARTS HERE</div>
+                <h1>Make room for<br><em>memories that last.</em></h1>
+                <p class="hero-description">
+                    Browse curated packages, compare what's included and bring
+                    the pieces of your perfect day together.
+                </p>
+                <div class="hero-actions">
+                    <a href="{% url 'public-packages' %}" class="btn btn-gold btn-lg">
+                        Find your package <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                    <a href="#how-it-works" class="hero-secondary-link">
+                        See how it works <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="hero-note">
+                    <i class="bi bi-stars"></i>
+                    Your celebration, thoughtfully brought together.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-bottom container">
+        <span>WEDDINGS · CELEBRATIONS · CORPORATE EVENTS</span>
+        <div class="hero-slider-controls" aria-label="Featured celebrations">
+            <button type="button" class="hero-slider-arrow" data-hero-previous
+                    aria-label="Previous slide">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div class="hero-slider-dots">
+                <button type="button" class="hero-slider-dot is-active" data-hero-to="0"
+                        aria-label="Show slide 1" aria-current="true"></button>
+                <button type="button" class="hero-slider-dot" data-hero-to="1"
+                        aria-label="Show slide 2"></button>
+                <button type="button" class="hero-slider-dot" data-hero-to="2"
+                        aria-label="Show slide 3"></button>
+            </div>
+            <button type="button" class="hero-slider-arrow" data-hero-next
+                    aria-label="Next slide">
+                <i class="bi bi-arrow-right"></i>
+            </button>
+            <button type="button" class="hero-slider-pause" data-hero-pause
+                    aria-label="Pause slideshow">
+                <i class="bi bi-pause-fill"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Introduction -->
+<section class="intro-section section-space">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="eyebrow"><span></span> THE ART OF CELEBRATING</div>
+                <h2 class="section-heading">
+                    Beautiful moments.<br>
+                    <em>Effortlessly brought together.</em>
+                </h2>
+            </div>
+
+            <div class="col-lg-5 offset-lg-1">
+                <p class="intro-text">
+                    The best celebrations are about more than a date on
+                    the calendar. They're about the people, the details,
+                    and the memories that stay with you long after the
+                    day is over.
+                </p>
+                <a href="#services" class="text-link">
+                    Find what makes your event special
+                    <i class="bi bi-arrow-up-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section class="how-it-works-section section-space" id="how-it-works">
+    <div class="container">
+        <div class="row align-items-end g-3 mb-5">
+            <div class="col-lg-7">
+                <div class="eyebrow"><span></span> A SIMPLER WAY TO CELEBRATE</div>
+                <h2 class="section-heading">Your event, <em>beautifully planned</em></h2>
+            </div>
+            <div class="col-lg-5">
+                <p class="section-subtitle mb-0">
+                    From first idea to final detail, find what you need in a few simple steps.
+                </p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <article class="planning-step h-100">
+                    <span class="planning-step-number">01</span>
+                    <span class="planning-step-icon"><i class="bi bi-search-heart"></i></span>
+                    <h3>Find your inspiration</h3>
+                    <p>Browse events, services and curated packages to discover what fits your vision.</p>
+                    <a href="{% url 'public-events' %}" class="text-link">
+                        Explore events <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="planning-step h-100">
+                    <span class="planning-step-number">02</span>
+                    <span class="planning-step-icon"><i class="bi bi-card-checklist"></i></span>
+                    <h3>Choose your details</h3>
+                    <p>Compare package inclusions, service descriptions and pricing before you decide.</p>
+                    <a href="{% url 'public-services' %}" class="text-link">
+                        Browse services <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="planning-step h-100">
+                    <span class="planning-step-number">03</span>
+                    <span class="planning-step-icon"><i class="bi bi-calendar2-heart"></i></span>
+                    <h3>Make it yours</h3>
+                    <p>Share your event details, confirm your booking and get ready for the big day.</p>
+                    <a href="{% url 'public-packages' %}" class="text-link">
+                        View packages <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="celebration-promise-section">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="celebration-promise">
+                    <i class="bi bi-compass"></i>
+                    <div>
+                        <h3>Ideas in one place</h3>
+                        <p>Explore events and services to find inspiration for your occasion.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="celebration-promise">
+                    <i class="bi bi-card-checklist"></i>
+                    <div>
+                        <h3>Clear package details</h3>
+                        <p>See what's included in a package before choosing what suits you.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="celebration-promise">
+                    <i class="bi bi-calendar2-check"></i>
+                    <div>
+                        <h3>Plan with confidence</h3>
+                        <p>Share your event details and keep your booking information together.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Events -->
+<section class="listing-section events-section section-space" id="events">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <div class="eyebrow"><span></span> WHAT'S HAPPENING</div>
+                <h2 class="section-heading">Discover <em>events</em></h2>
+                <p class="section-subtitle">
+                    Explore the latest events listed on EventSphere.
+                </p>
+            </div>
+            <div class="home-carousel-actions">
+                <a href="{% url 'public-events' %}" class="home-carousel-explore">
+                    Explore more events <i class="bi bi-arrow-up-right"></i>
+                </a>
+                {% if events %}
+                    <div class="home-carousel-controls" aria-label="Event carousel controls">
+                        <button type="button" data-home-carousel-prev aria-controls="home-events-track"
+                                aria-label="Scroll events left">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <button type="button" data-home-carousel-next aria-controls="home-events-track"
+                                aria-label="Scroll events right">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if events %}
+            <div class="home-carousel" data-home-carousel>
+                <div class="home-carousel-track" id="home-events-track" role="list"
+                     aria-label="Featured events" tabindex="0">
+                    {% for event in events %}
+                    <div class="home-carousel-item" role="listitem">
+                        <a href="{% url 'public-events' %}" class="d-block h-100 text-decoration-none text-reset" title="Explore {{ event.title }}">
+                            <article class="listing-card">
+                                <div class="listing-image">
+                                    {% if event.image %}
+                                        <img src="{{ event.image.url }}"
+                                             alt="{{ event.title }}" loading="lazy">
+                                    {% else %}
+                                        <div class="image-placeholder event-placeholder">
+                                            <i class="bi bi-calendar-heart"></i>
+                                        </div>
+                                    {% endif %}
+                                    <span class="image-label">EVENT</span>
+                                </div>
+
+                                <div class="listing-content">
+                                    <h3>{{ event.title }}</h3>
+
+                                    <p class="card-description">
+                                        {{ event.description|truncatewords:18    }}
+                                    </p>
+                                </div>
+                            </article>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-calendar2-heart"></i>
+                <h3>Something wonderful is in the making</h3>
+                <p>New events will appear here as soon as they are listed.</p>
+            </div>
+        {% endif %}
+
+    </div>
+</section>
+
+<!-- Services -->
+<section class="listing-section services-section section-space" id="services">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <div class="eyebrow"><span></span> THE PERFECT DETAILS</div>
+                <h2 class="section-heading">
+                    Services that make it <em>special</em>
+                </h2>
+                <p class="section-subtitle">
+                    Discover services listed by our event professionals.
+                </p>
+            </div>
+            <div class="home-carousel-actions">
+                <a href="{% url 'public-services' %}" class="home-carousel-explore">
+                    Explore more services <i class="bi bi-arrow-up-right"></i>
+                </a>
+                {% if services %}
+                    <div class="home-carousel-controls" aria-label="Service carousel controls">
+                        <button type="button" data-home-carousel-prev aria-controls="home-services-track"
+                                aria-label="Scroll services left">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <button type="button" data-home-carousel-next aria-controls="home-services-track"
+                                aria-label="Scroll services right">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if services %}
+            <div class="home-carousel" data-home-carousel>
+                <div class="home-carousel-track" id="home-services-track" role="list"
+                     aria-label="Featured services" tabindex="0">
+                    {% for service in services %}
+                    <div class="home-carousel-item" role="listitem">
+                        <a href="{% url 'public-services' %}" class="d-block h-100 text-decoration-none text-reset" title="Explore {{ service.name }}">
+                            <article class="service-card">
+                                <div class="service-image">
+                                    {% if service.image %}
+                                        <img src="{{ service.image.url }}"
+                                             alt="{{ service.name }}" loading="lazy">
+                                    {% else %}
+                                        <div class="image-placeholder service-placeholder">
+                                            <i class="bi bi-stars"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="service-body">
+                                    <span class="service-kicker">EVENT SERVICE</span>
+                                    <h3>{{ service.name }}</h3>
+                                    <p>{{ service.description|truncatewords:14 }}</p>
+                                </div>
+                            </article>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-flower2"></i>
+                <h3>Your perfect team starts here</h3>
+                <p>Available event services will be showcased here.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Packages -->
+<section class="packages-section section-space" id="packages">
+    <div class="container">
+        <div class="section-top">
+            <div>
+                <div class="eyebrow"><span></span> CURATED WITH CARE</div>
+                <h2 class="section-heading">
+                    Packages for your <em>big day</em>
+                </h2>
+                <p class="section-subtitle">
+                    Thoughtfully assembled options from our sellers.
+                </p>
+            </div>
+            <div class="home-carousel-actions">
+                <a href="{% url 'public-packages' %}" class="home-carousel-explore">
+                    Explore more packages <i class="bi bi-arrow-up-right"></i>
+                </a>
+                {% if packages %}
+                    <div class="home-carousel-controls" aria-label="Package carousel controls">
+                        <button type="button" data-home-carousel-prev aria-controls="home-packages-track"
+                                aria-label="Scroll packages left">
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <button type="button" data-home-carousel-next aria-controls="home-packages-track"
+                                aria-label="Scroll packages right">
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if packages %}
+            <div class="home-carousel" data-home-carousel>
+                <div class="home-carousel-track" id="home-packages-track" role="list"
+                     aria-label="Featured packages" tabindex="0">
+                    {% for package in packages %}
+                    <div class="home-carousel-item" role="listitem">
+                        <article class="package-card">
+                            <div class="package-image">
+                                {% if package.event.image %}
+                                    <img src="{{ package.event.image.url }}"
+                                         alt="{{ package.title }}" loading="lazy">
+                                {% else %}
+                                    <div class="image-placeholder package-placeholder">
+                                        <i class="bi bi-gift"></i>
+                                    </div>
+                                {% endif %}
+
+                                <span class="package-badge">CURATED PACKAGE</span>
+                                {% include "home/_package_favourite_button.html" %}
+                            </div>
+
+                            <div class="package-body">
+                                <span class="package-event">
+                                    {{ package.event.title }}
+                                </span>
+
+                                <h3>{{ package.title }}</h3>
+
+                                
+                                <div class="package-footer">
+                                    <div>
+                                        <span class="price-caption">Package price</span>
+                                        <strong>
+                                            ₹{{ package.total_price|floatformat:2 }}
+                                        </strong>
+                                        <span class="d-block small text-secondary">
+                                            + ₹150 per guest
+                                        </span>
+                                    </div>
+
+                                    <a href="{% url 'public-package-detail' package.id %}"
+                                       class="package-link"
+                                       aria-label="Book {{ package.title }}">
+                                        <i class="bi bi-arrow-up-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-gift"></i>
+                <h3>A little something to look forward to</h3>
+                <p>
+                    Our curated packages will appear here when sellers
+                    publish them.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Call to action -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-inner">
+            <div class="eyebrow cta-eyebrow">
+                <span></span> YOUR NEXT CHAPTER STARTS HERE
+            </div>
+
+            <h2>Let's make something<br><em>unforgettable.</em></h2>
+
+            <p>Your occasion is unique. Your celebration should be too.</p>
+
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_staff %}
+                    <a id="start-planning-cta" href="{% url 'dashboard' %}" class="btn btn-gold btn-lg">
+                        Admin Dashboard <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                {% elif request.user.profile.role == "SELLER" %}
+                    <a id="start-planning-cta" href="{% url 'seller-dashboard' %}" class="btn btn-gold btn-lg">
+                        Seller Dashboard <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                {% else %}
+                    <a id="start-planning-cta" href="{% url 'package-selection' %}" class="btn btn-gold btn-lg">
+                        Start Planning <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                {% endif %}
+            {% else %}
+                <a id="start-planning-cta" href="{% url 'accounts-register-page' %}" class="btn btn-gold btn-lg">
+                    Start Planning <i class="bi bi-arrow-up-right"></i>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'home/js/home.js' %}" defer></script>
+{% endblock %}

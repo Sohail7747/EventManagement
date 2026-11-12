@@ -1,0 +1,319 @@
+{% extends "home/public_base.html" %}
+{% load static %}
+
+{% block title %}Book {{ package.title }} | EventSphere{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'payments/css/package_booking.css' %}">
+
+<section class="public-page section-space">
+    <div class="container package-booking-page">
+        <div class="eyebrow"><span></span> RESERVE YOUR PACKAGE</div>
+
+        <div class="row align-items-end g-3 mb-4">
+            <div class="col-lg-8">
+                <span class="badge rounded-pill text-bg-dark mb-3">
+                    SELLER CURATED
+                </span>
+                <h1 class="section-heading mb-2">{{ package.title }}</h1>
+                <p class="section-subtitle mb-0">
+                    {{ package.description|truncatewords:28 }}
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <span class="d-block small text-secondary">Starting at</span>
+                <strong class="fs-3">
+                    ₹{{ starting_price|floatformat:2 }}
+                </strong>
+                <span class="d-block small text-secondary">Includes one guest</span>
+            </div>
+        </div>
+
+        <div class="included-services mb-5">
+            <div class="included-services-heading">
+                <span class="included-services-icon"><i class="bi bi-stars"></i></span>
+                <div>
+                    <h2 class="h5 mb-1">Included in your package</h2>
+                    <p class="small text-secondary mb-0">
+                        A closer look at the services selected for your event.
+                    </p>
+                </div>
+            </div>
+            <div class="p-3 p-md-4">
+                <div class="row g-3">
+                    {% for item in package.package_items.all %}
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <article class="included-service-card">
+                                <div class="included-service-image">
+                                    {% if item.service.image %}
+                                        <img src="{{ item.service.image.url }}"
+                                             alt="{{ item.service.name }}" loading="lazy">
+                                    {% else %}
+                                        <div class="included-service-placeholder">
+                                            <i class="bi bi-camera-reels"></i>
+                                        </div>
+                                    {% endif %}
+                                    <span class="included-service-check"
+                                          aria-label="Included in package">
+                                        <i class="bi bi-check-lg"></i>
+                                    </span>
+                                </div>
+                                <div class="included-service-copy">
+                                    <h3>{{ item.service.name }}</h3>
+                                    {% if item.service.description %}
+                                        <p>{{ item.service.description|truncatewords:16 }}</p>
+                                    {% endif %}
+                                </div>
+                            </article>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <p class="text-secondary small mb-0">
+                                No services are listed in this package.
+                            </p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <p class="section-subtitle mb-5">
+            Confirm your event details and share your contact information.
+        </p>
+
+        <div class="row g-4 align-items-start">
+            <div class="col-lg-7 order-1">
+                <div class="bg-white rounded-4 border p-4 p-md-5 shadow-sm">
+                    <form method="post" id="packageBookingForm">
+                        {% csrf_token %}
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <section class="mb-5">
+                            <h2 class="h5 mb-4">
+                                <span class="booking-step-number">1</span>
+                                Event details
+                            </h2>
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label for="{{ form.guest_count.id_for_label }}"
+                                           class="form-label fw-semibold">Number of guests</label>
+                                    {{ form.guest_count }}
+                                    <div class="form-text">
+                                        ₹{{ guest_price|floatformat:2 }} per guest
+                                    </div>
+                                    {% for error in form.guest_count.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="{{ form.booking_date.id_for_label }}"
+                                           class="form-label fw-semibold">Event start date</label>
+                                    {{ form.booking_date }}
+                                    {% for error in form.booking_date.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="{{ form.booking_end_date.id_for_label }}"
+                                           class="form-label fw-semibold">End date</label>
+                                    {{ form.booking_end_date }}
+                                    {% for error in form.booking_end_date.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-12">
+                                    <div class="availability-calendar"
+                                         id="availability-calendar"
+                                         data-api-url="{{ availability_url }}"
+                                         data-min-date="{{ today|date:'Y-m-d' }}"
+                                         data-selected-date="{{ form.booking_date.value|date:'Y-m-d'|default:'' }}">
+                                        <div class="availability-calendar-header">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="availability-previous" aria-label="Previous month">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </button>
+                                            <strong id="availability-month" aria-live="polite"></strong>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" id="availability-next" aria-label="Next month">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                        <div class="availability-calendar-grid" id="availability-calendar-grid" role="grid"></div>
+                                        <p class="small text-secondary mt-2 mb-0" id="availability-message" role="status" aria-live="polite">Loading dates…</p>
+                                        <div class="availability-legend">
+                                            <span><i></i> Available</span>
+                                            <span><i class="legend-unavailable"></i> Unavailable</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label fw-semibold">Event</label>
+                                    <div class="form-control bg-light">
+                                        {{ package.event.title }}
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="mb-4">
+                            <h2 class="h5 mb-4">
+                                <span class="booking-step-number">2</span>
+                                Contact information
+                            </h2>
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label for="{{ form.customer_name.id_for_label }}"
+                                           class="form-label fw-semibold">Full name</label>
+                                    {{ form.customer_name }}
+                                    {% for error in form.customer_name.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <label for="{{ form.customer_phone.id_for_label }}"
+                                           class="form-label fw-semibold">Phone number</label>
+                                    {{ form.customer_phone }}
+                                    {% for error in form.customer_phone.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-12">
+                                    <label for="{{ form.customer_email.id_for_label }}"
+                                           class="form-label fw-semibold">Email address</label>
+                                    {{ form.customer_email }}
+                                    {% for error in form.customer_email.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-12">
+                                    <label for="{{ form.customer_notes.id_for_label }}"
+                                           class="form-label fw-semibold">Notes for the seller (optional)</label>
+                                    {{ form.customer_notes }}
+                                    {% for error in form.customer_notes.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </section>
+
+                        <div class="booking-submit-area">
+                            <div class="booking-submit-total">
+                                Total due <span id="mobileSummaryTotal">₹{{ starting_price|floatformat:2 }}</span>
+                            </div>
+                            <button type="submit"
+                                    class="btn btn-gold btn-lg w-100 booking-confirm-button">
+                                {% if payment_options %}
+                                    Opening secure checkout...
+                                {% else %}
+                                    Pay full amount securely
+                                {% endif %}
+                            </button>
+                        </div>
+                        {% if payment_options %}
+                            <p class="text-center small text-secondary mt-2 mb-0">
+                                Your booking details are saved. Razorpay checkout is opening.
+                            </p>
+                        {% endif %}
+                        <div id="paymentError" class="alert alert-danger mt-3 d-none"
+                             role="alert" aria-live="polite"></div>
+                        <div class="d-flex flex-wrap justify-content-center gap-3 mt-3 small text-secondary">
+                            <span><i class="bi bi-shield-lock me-1"></i>Secure checkout by Razorpay</span>
+                            <span><i class="bi bi-calendar-check me-1"></i>Cancel while pending or confirmed</span>
+                            <span>Full payment due now</span>
+                        </div>
+                        <p class="text-center small text-secondary mt-2 mb-0">
+                            Your booking will be created after your full payment is verified.
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-5 order-2">
+                <aside class="booking-summary bg-white rounded-4 border p-4 shadow-sm"
+                       data-package-price="{{ package.total_price }}"
+                       data-guest-price="{{ guest_price }}">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                        <div>
+                            <span class="small text-secondary">YOUR SELECTION</span>
+                            <h2 class="h5 mt-1 mb-0">{{ package.title }}</h2>
+                        </div>
+                        <span class="badge rounded-pill text-bg-light border">
+                            {{ package.event.title }}
+                        </span>
+                    </div>
+
+                    {% if package.event.image %}
+                        <img src="{{ package.event.image.url }}"
+                             alt="{{ package.title }}"
+                             class="w-100 rounded-3 mb-4"
+                             style="height: 175px; object-fit: cover;">
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between gap-3 py-2">
+                        <span>Package services</span>
+                        <span>₹{{ package.total_price|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3 py-2">
+                        <span>
+                            Event <span class="text-secondary">×
+                                <span id="summaryGuestCount">1</span> guests
+                            </span>
+                        </span>
+                        <span id="summaryGuestPrice">₹{{ guest_price|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3 border-top mt-2 pt-3">
+                        <strong>Total</strong>
+                        <strong class="fs-5" id="summaryTotal">
+                            ₹{{ starting_price|floatformat:2 }}
+                        </strong>
+                    </div>
+                    <div class="d-flex justify-content-between gap-3 mt-2">
+                        <span class="small text-secondary">Full payment due now</span>
+                        <strong id="summaryDue">₹{{ starting_price|floatformat:2 }}</strong>
+                    </div>
+
+                    <div class="border-top mt-4 pt-3">
+                        <h3 class="h6 mb-2">Seller details</h3>
+                        <div class="fw-semibold">{{ package.seller.business_name }}</div>
+                        {% if package.seller.phone %}
+                            <div class="small mt-1">
+                                <i class="bi bi-telephone me-1"></i>
+                                <a href="tel:{{ package.seller.phone }}">
+                                    {{ package.seller.phone }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        {% if package.seller.user.email %}
+                            <div class="small mt-1">
+                                <i class="bi bi-envelope me-1"></i>
+                                <a href="mailto:{{ package.seller.user.email }}">
+                                    {{ package.seller.user.email }}
+                                </a>
+                            </div>
+                        {% endif %}
+                        {% if package.seller.address %}
+                            <div class="small text-secondary mt-1">
+                                <i class="bi bi-geo-alt me-1"></i>
+                                {{ package.seller.address|linebreaksbr }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if payment_options %}
+    {{ payment_options|json_script:"razorpay-options" }}
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endif %}
+
+<script src="{% static 'payments/js/package_booking.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'packages/js/availability_calendar.js' %}" defer></script>
+{% endblock %}

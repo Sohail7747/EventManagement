@@ -1,0 +1,126 @@
+{% extends "sellers/seller_base.html" %}
+
+{% block title %}Transactions & Payouts | Seller Dashboard{% endblock %}
+{% block page_heading %}Transactions & Payouts{% endblock %}
+
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <h1>Transactions &amp; Payouts</h1>
+        <p>Track customer payments, admin-approved earnings, and payout transfers. Platform commission is 10%.</p>
+    </div>
+</div>
+
+<div class="stats-grid mb-4">
+    <article class="stat-card"><div class="stat-label">Total earnings</div><div class="stat-value">₹{{ earned_total|floatformat:2 }}</div></article>
+    <article class="stat-card"><div class="stat-label">Available to request</div><div class="stat-value">₹{{ available_total|floatformat:2 }}</div></article>
+    <article class="stat-card"><div class="stat-label">Awaiting admin approval</div><div class="stat-value">₹{{ awaiting_confirmation|floatformat:2 }}</div></article>
+    <article class="stat-card"><div class="stat-label">Pending requests</div><div class="stat-value">₹{{ requested_total|floatformat:2 }}</div></article>
+    <article class="stat-card"><div class="stat-label">Paid out</div><div class="stat-value">₹{{ paid_total|floatformat:2 }}</div></article>
+</div>
+
+<section class="panel mb-4">
+    <div class="panel-header">
+        <div><h2>Monthly earnings</h2><span class="small text-secondary">Your seller share of completed payments</span></div>
+        <span class="date-chip">Last 6 months</span>
+    </div>
+    <div class="d-flex align-items-end justify-content-around gap-3 p-4" style="height:230px;">
+        {% for month in monthly_earnings %}
+            <div class="text-center flex-fill small text-secondary">
+                <strong class="d-block text-dark">₹{{ month.amount|floatformat:0 }}</strong>
+                <div class="mx-auto my-2 rounded-top" style="width:32px;height:{{ month.height }}%;min-height:8px;background:#6658d3;"></div>
+                {{ month.label }}
+            </div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel mb-4">
+    <div class="panel-header"><h2>Request a payout</h2></div>
+    <div class="p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <p class="mb-0">Earnings become available after you report completion, the customer confirms delivery, and admin approves it. Eligible amount: <strong>₹{{ available_total|floatformat:2 }}</strong></p>
+        <form method="post">
+            {% csrf_token %}
+            <button class="btn btn-primary" type="submit" {% if available_total <= 0 %}disabled{% endif %}>Request money from admin</button>
+        </form>
+    </div>
+</section>
+
+<section class="panel mb-4">
+    <div class="panel-header">
+        <div>
+            <h2>Booking transactions</h2>
+            <span class="small text-secondary">Latest 100 paid bookings and your earnings allocation</span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Booking</th><th>Customer / item</th><th>Booking date</th>
+                    <th>Payment reference</th><th>Gross paid</th><th>Your share</th>
+                    <th>Commission</th><th>Completion / payout</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for earning in transactions %}
+                    <tr>
+                        <td>#{{ earning.booking_id }}</td>
+                        <td>
+                            {{ earning.booking.customer_name|default:earning.booking.user.get_full_name|default:earning.booking.user.username }}
+                            <span class="d-block small text-secondary">{{ earning.booking.item_title }}</span>
+                        </td>
+                        <td>{{ earning.booking.booking_date|date:"d M Y" }}</td>
+                        <td>
+                            {{ earning.booking.payment_reference }}
+                            <span class="d-block small text-secondary">Paid</span>
+                        </td>
+                        <td>₹{{ earning.booking.total_price|floatformat:2 }}</td>
+                        <td class="fw-semibold">₹{{ earning.seller_amount|floatformat:2 }}</td>
+                        <td>₹{{ earning.commission_amount|floatformat:2 }}</td>
+                        <td>
+                            {% if earning.payout_request %}
+                                {{ earning.payout_request.get_status_display }}
+                                {% if earning.payout_request.payment_reference %}
+                                    <span class="d-block small text-secondary">{{ earning.payout_request.payment_reference }}</span>
+                                {% endif %}
+                            {% elif earning.booking.status == "COMPLETED" and earning.booking.admin_completed_at %}
+                                Available
+                            {% elif earning.booking.customer_confirmed_at %}
+                                Awaiting admin approval
+                            {% else %}
+                                Awaiting customer confirmation
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8" class="text-center text-secondary py-4">No booking transactions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-header"><h2>Payout transactions</h2></div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Request date</th><th>Processed</th><th>Amount</th><th>Status</th><th>Payment method</th><th>Transfer reference / admin note</th></tr></thead>
+            <tbody>
+                {% for payout in payout_requests %}
+                    <tr>
+                        <td>{{ payout.created_at|date:"d M Y" }}</td>
+                        <td>{{ payout.processed_at|date:"d M Y H:i"|default:"—" }}</td>
+                        <td>₹{{ payout.amount|floatformat:2 }}</td>
+                        <td>{{ payout.get_status_display }}</td>
+                        <td>{{ payout.payment_method|default:"—" }}</td>
+                        <td>{{ payout.payment_reference|default:payout.admin_note|default:"—" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6" class="text-center text-secondary py-4">No payout transactions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

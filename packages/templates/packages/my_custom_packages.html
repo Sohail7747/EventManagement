@@ -1,0 +1,71 @@
+{% extends "bookings/user_base.html" %}
+
+{% block title %}My Packages | EventSphere{% endblock %}
+
+{% block user_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h1 class="page-heading">My Packages</h1>
+        <p class="page-description">Packages you created with your selected services and prices.</p>
+    </div>
+    <a class="btn btn-gold" href="{% url 'package-selection' %}">
+        <i class="bi bi-plus-lg me-1"></i>Create a package
+    </a>
+</div>
+
+<div class="row g-3">
+    {% for package in packages %}
+        <div class="col-12">
+            <article class="user-card">
+                <div class="d-flex flex-wrap justify-content-between gap-3">
+                    <div>
+                        <span class="small text-secondary">{{ package.created_at|date:"d M Y" }}</span>
+                        <h2 class="h5 mt-1 mb-1">{{ package.package_title|default:"My package" }}</h2>
+                        <div class="small text-secondary">
+                            Dates: {{ package.event_date|date:"d M Y" }}{% if package.event_end_date %} – {{ package.event_end_date|date:"d M Y" }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="text-md-end">
+                        <span class="small text-secondary d-block">Package total</span>
+                        <strong class="fs-5">₹{{ package.total_cost|floatformat:2 }}</strong>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-2">
+                    {% for item in package.package_services.all %}
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between gap-2 small">
+                                <span>
+                                    {{ item.service.name }}
+                                    <span class="text-secondary">
+                                        · {% if item.seller %}
+                                            {{ item.seller.business_name }}
+                                        {% elif item.service.seller %}
+                                            {{ item.service.seller.business_name }}
+                                        {% else %}
+                                            Seller
+                                        {% endif %}
+                                    </span>
+                                </span>
+                                <strong>₹{{ item.selected_price|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-3">
+                    <a class="btn btn-gold btn-sm" href="{% url 'custom-package-booking' package.pk %}">Book and pay</a>
+                </div>
+            </article>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="user-card empty-state">
+                <i class="bi bi-box-seam"></i>
+                <h2 class="h5">No custom packages yet</h2>
+                <p>Create a package by choosing services and comparing seller prices.</p>
+                <a class="btn btn-gold" href="{% url 'package-selection' %}">Create your package</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

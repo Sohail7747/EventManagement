@@ -1,0 +1,291 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}Dashboard | EventSphere{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard.css' %}">
+
+<div class="pro-dashboard">
+    <div class="welcome-row">
+        <div>
+            <h1>Platform overview</h1>
+            <p>Welcome back, {{ request.user.get_full_name|default:request.user.username }}. Here's what's happening across EventSphere.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'admin-bookings' %}" class="primary-btn">
+                <i class="bi bi-journal-check"></i> Review bookings
+            </a>
+            <a href="{% url 'admin-events' %}" class="primary-btn">
+                <i class="bi bi-calendar-plus"></i> Manage events
+            </a>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <article class="stat-card dashboard-stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Total accounts</span>
+                <span class="stat-icon purple"><i class="bi bi-people"></i></span>
+            </div>
+            <div class="stat-value">{{ users_count }}</div>
+            <div class="stat-note">Registered on the platform</div>
+        </article>
+        <article class="stat-card dashboard-stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Seller partners</span>
+                <span class="stat-icon blue"><i class="bi bi-shop"></i></span>
+            </div>
+            <div class="stat-value">{{ sellers_count }}</div>
+            <div class="stat-note">Businesses onboarded</div>
+        </article>
+        <article class="stat-card dashboard-stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Bookings</span>
+                <span class="stat-icon pink"><i class="bi bi-journal-check"></i></span>
+            </div>
+            <div class="stat-value">{{ bookings_count }}</div>
+            <div class="stat-note">{{ pending_bookings_count }} awaiting seller response</div>
+        </article>
+        <article class="stat-card dashboard-stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Payment volume</span>
+                <span class="stat-icon orange"><i class="bi bi-cash-stack"></i></span>
+            </div>
+            <div class="stat-value">₹{{ payment_volume_total|floatformat:0 }}</div>
+            <div class="stat-note">Gross verified booking payments</div>
+        </article>
+    </div>
+
+    <nav class="dashboard-quick-links" aria-label="Dashboard shortcuts">
+        <a href="{% url 'users' %}"><i class="bi bi-people"></i> Users</a>
+        <a href="{% url 'admin-sellers' %}"><i class="bi bi-shop"></i> Sellers</a>
+        <a href="{% url 'admin-payments' %}"><i class="bi bi-wallet2"></i> Transactions & payouts</a>
+        <a href="{% url 'admin-catalog-packages' %}"><i class="bi bi-box-seam"></i> Packages</a>
+    </nav>
+
+    <div class="dashboard-analytics-grid">
+        <section class="panel dashboard-chart-panel">
+            <div class="panel-header">
+                <div>
+                    <h2><i class="bi bi-bar-chart-line"></i>Payment volume</h2>
+                    <span class="small text-secondary">Gross verified payments · last 6 months</span>
+                </div>
+                <span class="badge rounded-pill text-bg-light">6 months</span>
+            </div>
+            <div class="finance-chart-scroll">
+                <div class="finance-chart finance-chart--volume" role="img" aria-label="Monthly payment volume">
+                    {% for month in monthly_payment_volume %}
+                        <div class="finance-chart-column" style="--bar-height: {% if month.amount %}{{ month.height }}%{% else %}0%{% endif %};">
+                            <div class="finance-chart-plot">
+                                <span class="finance-chart-value">₹{{ month.amount|floatformat:0 }}</span>
+                                <div class="finance-chart-bar"></div>
+                            </div>
+                            <span class="finance-chart-month">{{ month.label }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="panel dashboard-chart-panel">
+            <div class="panel-header">
+                <div>
+                    <h2><i class="bi bi-cash-coin"></i>Platform commission</h2>
+                    <span class="small text-secondary">Commission earned · last 6 months</span>
+                </div>
+                <a href="{% url 'admin-payments' %}">View payments <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+            <div class="finance-chart-scroll">
+                <div class="finance-chart finance-chart--commission" role="img" aria-label="Monthly platform commission">
+                    {% for month in monthly_commissions %}
+                        <div class="finance-chart-column" style="--bar-height: {% if month.amount %}{{ month.height }}%{% else %}0%{% endif %};">
+                            <div class="finance-chart-plot">
+                                <span class="finance-chart-value">₹{{ month.amount|floatformat:0 }}</span>
+                                <div class="finance-chart-bar"></div>
+                            </div>
+                            <span class="finance-chart-month">{{ month.label }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="panel dashboard-chart-panel">
+            <div class="panel-header">
+                <div>
+                    <h2><i class="bi bi-journal-check"></i>Booking activity</h2>
+                    <span class="small text-secondary">New bookings · last 6 months</span>
+                </div>
+                <a href="{% url 'admin-bookings' %}">Review all <i class="bi bi-arrow-right ms-1"></i></a>
+            </div>
+            <div class="finance-chart-scroll">
+                <div class="finance-chart finance-chart--bookings" role="img" aria-label="Monthly booking totals">
+                    {% for month in monthly_bookings %}
+                        <div class="finance-chart-column" style="--bar-height: {% if month.count %}{{ month.height }}%{% else %}0%{% endif %};">
+                            <div class="finance-chart-plot">
+                                <span class="finance-chart-value">{{ month.count }}</span>
+                                <div class="finance-chart-bar"></div>
+                            </div>
+                            <span class="finance-chart-month">{{ month.label }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="panel dashboard-chart-panel">
+            <div class="panel-header">
+                <div>
+                    <h2><i class="bi bi-graph-up-arrow"></i>Account growth</h2>
+                    <span class="small text-secondary">New accounts and sellers · last 6 months</span>
+                </div>
+            </div>
+            <div class="dashboard-account-growth">
+                <div>
+                    <div class="dashboard-growth-heading"><span>Users</span><span>{{ users_count }} total</span></div>
+                    <div class="dashboard-growth-bars" role="img" aria-label="New users by month">
+                        {% for month in monthly_users %}
+                            <div class="dashboard-growth-month">
+                                <span>{{ month.count }}</span>
+                                <div class="dashboard-growth-bar" style="--bar-height: {% if month.count %}{{ month.height }}%{% else %}0%{% endif %};"></div>
+                                <span>{{ month.label }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <div class="dashboard-growth-heading"><span>Sellers</span><span>{{ sellers_count }} total</span></div>
+                    <div class="dashboard-growth-bars" role="img" aria-label="New sellers by month">
+                        {% for month in monthly_sellers %}
+                            <div class="dashboard-growth-month">
+                                <span>{{ month.count }}</span>
+                                <div class="dashboard-growth-bar dashboard-growth-bar--sellers" style="--bar-height: {% if month.count %}{{ month.height }}%{% else %}0%{% endif %};"></div>
+                                <span>{{ month.label }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="panel dashboard-table-panel dashboard-bookings-panel mb-4">
+        <div class="panel-header">
+            <div class="dashboard-bookings-heading">
+                <span class="dashboard-bookings-icon"><i class="bi bi-journal-check"></i></span>
+                <div>
+                    <h2>Recent bookings</h2>
+                    <p>Latest customer requests and payment status</p>
+                </div>
+            </div>
+            <a href="{% url 'admin-bookings' %}" class="dashboard-bookings-action">
+                Review all bookings <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover dashboard-bookings-table">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Booking</th>
+                        <th>Customer</th>
+                        <th>Package / item</th>
+                        <th>Seller</th>
+                        <th>Event date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in recent_bookings %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="dashboard-booking-reference">#{{ booking.pk }}</span>
+                                <span class="dashboard-booking-subtext">{{ booking.created_at|date:"d M Y" }}</span>
+                            </td>
+                            <td>
+                                <span class="dashboard-booking-customer">{{ booking.user.get_full_name|default:booking.user.username }}</span>
+                                <span class="dashboard-booking-subtext">{{ booking.user.email|default:"Customer account" }}</span>
+                            </td>
+                            <td>
+                                <span class="dashboard-booking-item">{{ booking.item_title }}</span>
+                                <span class="dashboard-booking-subtext">
+                                    {% if booking.package_event %}{{ booking.package_event.title }}
+                                    {% elif booking.event %}{{ booking.event.title }}
+                                    {% elif booking.service %}{{ booking.service.name }}
+                                    {% else %}Event booking{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if booking.seller %}{{ booking.seller.business_name }}{% elif booking.package_event %}{{ booking.package_event.seller.business_name }}{% else %}Multiple / unassigned{% endif %}
+                            </td>
+                            <td>{{ booking.booking_date|date:"d M Y" }}</td>
+                            <td>
+                                <span class="dashboard-booking-amount">₹{{ booking.total_price|floatformat:2 }}</span>
+                                {% if booking.payment_attempt.status == "PAID" %}
+                                    <span class="dashboard-booking-payment is-paid"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                                {% else %}
+                                    <span class="dashboard-booking-payment"><i class="bi bi-clock"></i> {{ booking.payment_attempt.status|default:"Unpaid"|title }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill dashboard-status-badge dashboard-status-badge--{{ booking.status|lower }}">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-calendar2-minus d-block mb-2 fs-4 text-secondary"></i>
+                                <span class="fw-semibold text-dark">No bookings yet</span>
+                                <span class="d-block small text-secondary mt-1">New customer bookings will appear here.</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-header">
+            <div>
+                <h2><i class="bi bi-box-seam me-2 text-primary"></i>Published packages</h2>
+                <span class="small text-secondary">{{ packages_count }} published package{{ packages_count|pluralize }}</span>
+            </div>
+            <a href="{% url 'admin-catalog-packages' %}">
+                View all <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr><th class="ps-4">Package</th><th>Event</th><th>Seller</th><th>Price</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for package in packages|slice:":6" %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-semibold">{{ package.title }}</div>
+                                <div class="small text-secondary">{{ package.description|truncatechars:55 }}</div>
+                            </td>
+                            <td>{{ package.event.title }}</td>
+                            <td>{{ package.seller.business_name|default:"—" }}</td>
+                            <td class="fw-semibold">₹{{ package.total_price|floatformat:2 }}</td>
+                            <td>
+                                <a href="{% url 'catalog-package-detail' package.pk %}" class="view-btn">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-secondary py-4">No packages published.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

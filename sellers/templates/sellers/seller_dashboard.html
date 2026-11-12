@@ -1,0 +1,315 @@
+{% extends "sellers/seller_base.html" %}
+{% load static %}
+
+{% block title %}Seller Dashboard | EventSphere{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'sellers/css/seller_dashboard.css' %}">
+
+<div class="seller-pro-dashboard">
+    <div class="welcome-row">
+        <div>
+            <span class="small text-uppercase text-secondary fw-semibold">
+                Seller workspace
+            </span>
+            <h1 class="mt-1 mb-2">
+                Welcome back, {{ seller.business_name|default:request.user.username }}
+            </h1>
+            <p>Track booking requests and build packages from the events and services in the admin catalog.</p>
+        </div>
+        <a class="primary-btn" href="{% url 'seller-create-package' %}">
+            <i class="bi bi-plus-lg"></i> Create a package
+        </a>
+    </div>
+
+    <div class="stats-grid">
+        <article class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Bookings</span>
+                <span class="stat-icon purple"><i class="bi bi-journal-check"></i></span>
+            </div>
+            <div class="stat-value">{{ bookings_count|default:"0" }}</div>
+            <div class="stat-note">{{ pending_bookings_count|default:"0" }} pending response</div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Available events</span>
+                <span class="stat-icon blue"><i class="bi bi-calendar-event"></i></span>
+            </div>
+            <div class="stat-value">{{ events_count|default:"0" }}</div>
+            <div class="stat-note">Events added by admin</div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Available services</span>
+                <span class="stat-icon orange"><i class="bi bi-briefcase"></i></span>
+            </div>
+            <div class="stat-value">{{ services_count|default:"0" }}</div>
+            <div class="stat-note">Services added by admin</div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Packages</span>
+                <span class="stat-icon green"><i class="bi bi-box-seam"></i></span>
+            </div>
+            <div class="stat-value">{{ packages_count|default:"0" }}</div>
+            <div class="stat-note">Curated packages published</div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Total earnings</span>
+                <span class="stat-icon green"><i class="bi bi-cash-stack"></i></span>
+            </div>
+            <div class="stat-value">₹{{ earned_total|floatformat:0 }}</div>
+            <div class="stat-note">Your 90% seller share</div>
+        </article>
+        <article class="stat-card">
+            <div class="stat-top">
+                <span class="stat-label">Available to request</span>
+                <span class="stat-icon blue"><i class="bi bi-wallet2"></i></span>
+            </div>
+            <div class="stat-value">₹{{ available_total|floatformat:0 }}</div>
+            <div class="stat-note">Customer-confirmed completed events</div>
+        </article>
+    </div>
+
+    <div class="seller-dashboard-grid">
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2><i class="bi bi-bar-chart-line me-2 text-primary"></i>Booking activity</h2>
+                    <span class="small text-secondary">Requests received in the last six months</span>
+                </div>
+                <span class="date-chip">Last 6 months</span>
+            </div>
+            <div class="seller-booking-chart" role="img" aria-label="Monthly bookings received">
+                {% for month in monthly_bookings %}
+                    <div class="seller-chart-column">
+                        <span class="seller-chart-count">{{ month.count }}</span>
+                        <div class="seller-chart-bar" style="height: {{ month.height }}%;"></div>
+                        <span>{{ month.label }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <h2><i class="bi bi-lightning-charge me-2 text-primary"></i>Quick actions</h2>
+            </div>
+            <div class="seller-quick-actions">
+                <a href="{% url 'seller-bookings' %}">
+                    <i class="bi bi-journal-check"></i> Review booking requests
+                </a>
+                <a href="{% url 'seller-payments' %}">
+                    <i class="bi bi-wallet2"></i> View earnings and request payout
+                </a>
+                <a href="{% url 'seller-packages' %}">
+                    <i class="bi bi-box-seam"></i> Manage packages
+                </a>
+                <a href="{% url 'seller-profile' %}">
+                    <i class="bi bi-person-gear"></i> Business profile
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <section class="panel mb-4">
+        <div class="panel-header">
+            <div>
+                <h2><i class="bi bi-box-seam me-2 text-primary"></i>My packages</h2>
+                <span class="small text-secondary">Your latest published packages</span>
+            </div>
+            <a href="{% url 'seller-packages' %}">View all <i class="bi bi-arrow-right"></i></a>
+        </div>
+        {% for package in recent_packages %}
+            <article class="seller-dashboard-package">
+                <div>
+                    <h3 class="seller-dashboard-package-title">{{ package.title }}</h3>
+                    <div class="seller-dashboard-package-meta">
+                        {{ package.event.title }} · {{ package.package_items.count }} service{{ package.package_items.count|pluralize }}
+                    </div>
+                </div>
+                <div class="seller-dashboard-package-actions d-flex align-items-center gap-3">
+                    <strong class="seller-dashboard-package-price">₹{{ package.total_price|floatformat:2 }}</strong>
+                    <a href="{% url 'seller-view-package' package.pk %}" class="btn btn-sm btn-outline-primary"
+                       title="View package" aria-label="View {{ package.title }}">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </div>
+            </article>
+        {% empty %}
+            <div class="p-4 text-secondary small">You have not published any packages yet.</div>
+        {% endfor %}
+    </section>
+
+    <section class="panel mb-4">
+        <div class="panel-header">
+            <div>
+                <h2><i class="bi bi-chat-square-text me-2 text-primary"></i>Service quote requests</h2>
+                <span class="small text-secondary">New services customers need help finding</span>
+            </div>
+        </div>
+        {% for quote in service_quote_requests %}
+            <article class="seller-package-request">
+                <div class="d-flex flex-wrap justify-content-between gap-2">
+                    <div>
+                        <span class="small text-secondary">
+                            Requested {{ quote.request.created_at|date:"d M Y" }}
+                            · {{ quote.request.customer.get_full_name|default:quote.request.customer.username }}
+                        </span>
+                        <h3 class="h6 mt-1 mb-1">{{ quote.request.service_name }}</h3>
+                        {% if quote.request.event_date %}
+                            <span class="small text-secondary">Event date: {{ quote.request.event_date|date:"d M Y" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if quote.request.details %}
+                    <p class="small mt-2 mb-0">{{ quote.request.details|linebreaksbr }}</p>
+                {% endif %}
+                <form method="post" action="{% url 'seller-service-quote-response' quote.pk %}" class="row g-2 align-items-end mt-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="quote">
+                    <div class="col-sm-4">
+                        <label class="form-label small mb-1" for="quote-price-{{ quote.pk }}">Your quote (₹)</label>
+                        <input class="form-control form-control-sm" id="quote-price-{{ quote.pk }}" name="quoted_price"
+                               type="number" min="0.01" max="99999999.99" step="0.01" required>
+                    </div>
+                    <div class="col-sm">
+                        <label class="form-label small mb-1" for="quote-message-{{ quote.pk }}">Message <span class="text-secondary">(optional)</span></label>
+                        <input class="form-control form-control-sm" id="quote-message-{{ quote.pk }}" name="message" maxlength="2000"
+                               placeholder="Add a note about your offer">
+                    </div>
+                    <div class="col-sm-auto">
+                        <button class="btn btn-success btn-sm" type="submit">Send quote</button>
+                    </div>
+                </form>
+                <form method="post" action="{% url 'seller-service-quote-response' quote.pk %}" class="mt-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="unavailable">
+                    <button class="btn btn-outline-secondary btn-sm" type="submit">I can’t provide this service</button>
+                </form>
+            </article>
+        {% empty %}
+            <div class="p-4 text-secondary small">No new service quote requests are waiting for your response.</div>
+        {% endfor %}
+    </section>
+
+    <section class="panel mb-4">
+        <div class="panel-header">
+            <div>
+                <h2><i class="bi bi-box-seam me-2 text-primary"></i>Custom package requests</h2>
+                <span class="small text-secondary">Requests that include your event or services</span>
+            </div>
+            <a href="{% url 'seller-bookings' %}">All requests <i class="bi bi-arrow-right"></i></a>
+        </div>
+        {% for decision in custom_package_requests %}
+            {% with booking=decision.booking %}
+                <article class="seller-package-request">
+                    <div class="d-flex flex-wrap justify-content-between gap-2">
+                        <div>
+                            <span class="small text-secondary">Booking #{{ booking.pk }} · {{ booking.created_at|date:"d M Y" }}</span>
+                            <h3 class="h6 mt-1 mb-1">{{ booking.custom_package.package_title|default:"My package" }}</h3>
+                            <span class="small text-secondary">
+                                {{ booking.customer_name|default:booking.user.get_full_name|default:booking.user.username }}
+                                · {{ booking.booking_date|date:"d M Y" }}
+                                · {{ booking.guest_count }} guest{{ booking.guest_count|pluralize }}
+                            </span>
+                        </div>
+                        <strong>Package total: ₹{{ booking.total_price|floatformat:2 }}</strong>
+                    </div>
+                    <div class="seller-package-request-services">
+                        {% for item in booking.custom_package.package_services.all %}
+                            {% if item.seller_id == seller.pk or item.service.seller_id == seller.pk %}
+                                <span>{{ item.service.name }} · ₹{{ item.selected_price|floatformat:2 }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if booking.customer_notes %}
+                        <p class="small mt-2 mb-0"><strong>Customer notes:</strong> {{ booking.customer_notes }}</p>
+                    {% endif %}
+                    <div class="d-flex flex-wrap align-items-start gap-2 mt-3">
+                        <form method="post" action="{% url 'seller-booking-decision' booking.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="accept">
+                            <button class="btn btn-success btn-sm" type="submit">Accept request</button>
+                        </form>
+                        <form method="post" action="{% url 'seller-booking-decision' booking.pk %}" class="d-flex flex-wrap gap-2">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <input class="form-control form-control-sm" name="rejection_reason"
+                                   placeholder="Reason required to reject" aria-label="Rejection reason" required>
+                            <button class="btn btn-outline-danger btn-sm" type="submit">Reject</button>
+                        </form>
+                    </div>
+                </article>
+            {% endwith %}
+        {% empty %}
+            <div class="p-4 text-secondary small">No custom package requests are waiting for your response.</div>
+        {% endfor %}
+    </section>
+
+    <section class="panel mb-4">
+        <div class="panel-header">
+            <div>
+                <h2><i class="bi bi-inbox me-2 text-primary"></i>Recent booking requests</h2>
+                <span class="small text-secondary">The latest requests sent to your business</span>
+            </div>
+            <a href="{% url 'seller-bookings' %}">Review all <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Reference</th>
+                        <th>Customer</th>
+                        <th>Package / item</th>
+                        <th>Event date</th>
+                        <th>Guests</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in recent_bookings %}
+                        <tr>
+                            <td class="ps-4 fw-semibold">#{{ booking.pk }}</td>
+                            <td>{{ booking.customer_name|default:booking.user.get_full_name|default:booking.user.username }}</td>
+                            <td>{{ booking.item_title }}</td>
+                            <td>
+                                {{ booking.booking_date|date:"d M Y" }}
+                                {% if booking.booking_end_date %}
+                                    <span class="d-block small text-secondary">
+                                        to {{ booking.booking_end_date|date:"d M Y" }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>{{ booking.guest_count }}</td>
+                            <td class="fw-semibold">
+                                ₹{{ booking.total_price|floatformat:2 }}
+                                {% if booking.payment_attempt.status == "PAID" %}
+                                    <span class="d-block small text-success">Payment complete</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="seller-dashboard-booking-status {% if booking.seller_completion_state == 'complete' %}is-complete{% elif booking.seller_completion_state == 'review' %}is-review{% endif %}">
+                                    {{ booking.seller_completion_label }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-secondary py-5">
+                                <i class="bi bi-calendar2-check fs-3 d-block mb-2"></i>
+                                No booking requests yet. New requests will appear here.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
