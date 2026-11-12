@@ -22,7 +22,7 @@ RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 
-DEBUG = os.getenv("DEBUG", "True").lower() in {"true", "1", "yes", "on"}
+DEBUG = os.getenv("DEBUG", "False").lower() in {"true", "1", "yes", "on"}
 
 _email_host = os.getenv("EMAIL_HOST", "")
 _email_backend = os.getenv(
