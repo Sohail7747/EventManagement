@@ -124,53 +124,6 @@ EventSphere{% endblock %} {% block content %}
           </div>
         </section>
 
-<<<<<<< HEAD
-=======
-        <section
-          class="package-detail-card p-4 p-md-5 mb-4"
-          aria-labelledby="package-reviews-heading"
-        >
-          <div
-            class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"
-          >
-            <div>
-              <span class="text-uppercase small text-secondary fw-semibold"
-                >Verified customers</span
-              >
-              <h2 class="h3 mt-2 mb-0" id="package-reviews-heading">
-                Reviews &amp; ratings
-              </h2>
-            </div>
-            {% if package.rating_average %}
-            <span class="badge rounded-pill text-bg-warning fs-6"
-              >{{ package.rating_average|floatformat:1 }} ★</span
-            >
-            {% endif %}
-          </div>
-          {% for review in reviews %}
-          <article class="border-top py-3">
-            <div class="d-flex justify-content-between gap-3">
-              <span
-                class="text-warning"
-                aria-label="{{ review.rating }} out of 5 stars"
-                >{{ review.rating }} ★</span
-              >
-            </div>
-            <p class="small text-secondary mt-1 mb-1">
-              {{ review.created_at|date:"d M Y" }} · Verified booking
-            </p>
-            {% if review.comment %}
-            <p class="mb-0">{{ review.comment|linebreaksbr }}</p>
-            {% endif %}
-          </article>
-          {% empty %}
-          <p class="text-secondary mb-0">
-            No reviews yet. Complete a booking to be the first to review this
-            package.
-          </p>
-          {% endfor %}
-        </section>
->>>>>>> acb5f62 (Third commit)
       </div>
 
       <div class="package-detail-booking">

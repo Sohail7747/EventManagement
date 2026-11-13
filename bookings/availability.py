@@ -3,13 +3,7 @@ from datetime import timedelta
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.utils import timezone
-<<<<<<< HEAD
 from admin_panel.models import Seller
-=======
-
-from admin_panel.models import Seller
-from packages.models import CatalogPackage, EventPackage
->>>>>>> acb5f62 (Third commit)
 
 from .models import Booking, BookingDateReservation, SellerUnavailableDate
 
