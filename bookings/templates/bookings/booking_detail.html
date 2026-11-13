@@ -1,479 +1,694 @@
-{% extends "bookings/user_base.html" %}
+{% extends "bookings/user_base.html" %} 
 {% load static %}
-
-{% block title %}Booking #{{ booking.pk }} | EventSphere{% endblock %}
-
-{% block extra_user_css %}
-<link rel="stylesheet" href="{% static 'bookings/css/booking_detail.css' %}">
-{% endblock %}
-
+{% block title%}Booking #{{ booking.pk }} | EventSphere{% endblock %}
+{% block extra_user_css%}<link rel="stylesheet" href="{% static 'bookings/css/booking_detail.css' %}" />{% endblock %} 
 {% block user_content %}
 <div class="booking-detail-page">
-    <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
-        <a href="{% url 'my-bookings' %}" class="booking-back-link">
-            <i class="bi bi-arrow-left me-1"></i> All bookings
-        </a>
-        <span class="booking-ref"><i class="bi bi-shield-check"></i> Secure booking record</span>
-    </div>
+  <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+    <a href="{% url 'my-bookings' %}" class="booking-back-link">
+      <i class="bi bi-arrow-left me-1"></i> All bookings
+    </a>
+    <span class="booking-ref"
+      ><i class="bi bi-shield-check"></i> Secure booking record</span
+    >
+  </div>
 
-    <header class="booking-hero mb-4">
-        <div class="booking-hero-content d-flex flex-wrap justify-content-between align-items-end gap-3">
-            <div>
-                <span class="booking-kicker">Booking details · #{{ booking.pk }}</span>
-                <h2>{{ booking.item_title }}</h2>
-                <div class="booking-hero-meta">
-                    <i class="bi bi-calendar3 me-1"></i>
-                    {{ booking.booking_date|date:"D, d M Y" }}
-                    {% if booking.booking_end_date %} – {{ booking.booking_end_date|date:"D, d M Y" }}{% endif %}
-                    <span class="mx-2">·</span>
-                    Booked {{ booking.created_at|date:"d M Y" }}
-                </div>
-            </div>
-            <span class="booking-status-pill">
-                {% if booking.status == "PENDING" %}<i class="bi bi-hourglass-split"></i>
-                {% elif booking.status == "CONFIRMED" %}<i class="bi bi-check-circle"></i>
-                {% elif booking.status == "COMPLETED" %}<i class="bi bi-patch-check"></i>
-                {% elif booking.status == "REJECTED" %}<i class="bi bi-x-circle"></i>
-                {% else %}<i class="bi bi-calendar2-x"></i>{% endif %}
-                {{ booking.get_status_display }}
+  <header class="booking-hero mb-4">
+    <div
+      class="booking-hero-content d-flex flex-wrap justify-content-between align-items-end gap-3"
+    >
+      <div>
+        <span class="booking-kicker">Booking details · #{{ booking.pk }}</span>
+        <h2>{{ booking.item_title }}</h2>
+        <div class="booking-hero-meta">
+          <i class="bi bi-calendar3 me-1"></i>
+          {{ booking.booking_date|date:"D, d M Y" }} {% if
+          booking.booking_end_date %} – {{ booking.booking_end_date|date:"D, d M
+          Y" }}{% endif %}
+          <span class="mx-2">·</span>
+          Booked {{ booking.created_at|date:"d M Y" }}
+        </div>
+      </div>
+      <span class="booking-status-pill">
+        {% if booking.status == "PENDING" %}<i
+          class="bi bi-hourglass-split"
+        ></i>
+        {% elif booking.status == "CONFIRMED" %}<i
+          class="bi bi-check-circle"
+        ></i>
+        {% elif booking.status == "COMPLETED" %}<i
+          class="bi bi-patch-check"
+        ></i>
+        {% elif booking.status == "REJECTED" %}<i class="bi bi-x-circle"></i> {%
+        else %}<i class="bi bi-calendar2-x"></i>{% endif %} {{
+        booking.get_status_display }}
+      </span>
+    </div>
+  </header>
+
+  <div class="row g-4 align-items-start">
+    <div class="col-12 col-xl-8">
+      {% if booking.status == "CONFIRMED" %}
+      <section
+        class="booking-section-card completion-card {% if can_confirm_completion %}is-ready{% endif %} mb-4"
+        aria-labelledby="completion-heading"
+      >
+        <div class="booking-section-heading">
+          <span class="booking-section-icon"
+            ><i class="bi bi-patch-check"></i
+          ></span>
+          <div>
+            <h3 id="completion-heading">Confirm your event is complete</h3>
+            <p>
+              The seller reports completion, you confirm delivery, then admin
+              reviews it before payouts unlock.
+            </p>
+          </div>
+        </div>
+
+        <ul class="completion-steps">
+          <li
+            class="completion-step {% if event_has_ended %}is-complete{% endif %}"
+          >
+            <i
+              class="bi {% if event_has_ended %}bi-check-circle-fill{% else %}bi-calendar-event{% endif %}"
+            ></i>
+            <span>
+              Event end date:
+              <strong
+                >{{
+                booking.booking_end_date|default:booking.booking_date|date:"l, d
+                F Y" }}</strong
+              >
+              {% if not event_has_ended %} — confirmation opens after this
+              date.{% endif %}
             </span>
+          </li>
+          {% for decision in seller_decisions %}
+          <li
+            class="completion-step {% if decision.seller_completed_at %}is-complete{% endif %}"
+          >
+            <i
+              class="bi {% if decision.seller_completed_at %}bi-check-circle-fill{% else %}bi-hourglass-split{% endif %}"
+            ></i>
+            <span>
+              <strong>{{ decision.seller.business_name }}</strong>
+              {% if decision.seller_completed_at %} reported completion {{
+              decision.seller_completed_at|date:"d M Y" }}. {% else %} has not
+              reported completion yet. {% endif %}
+            </span>
+          </li>
+          {% empty %}
+          <li class="completion-step">
+            <i class="bi bi-hourglass-split"></i>
+            <span>Seller completion details are not available yet.</span>
+          </li>
+          {% endfor %}
+          <li
+            class="completion-step {% if booking.admin_completed_at %}is-complete{% endif %}"
+          >
+            <i
+              class="bi {% if booking.admin_completed_at %}bi-check-circle-fill{% else %}bi-hourglass-split{% endif %}"
+            ></i>
+            <span>
+              <strong>Admin review</strong>
+              {% if booking.admin_completed_at %} approved completion {{
+              booking.admin_completed_at|date:"d M Y" }}. {% elif
+              booking.customer_confirmed_at %} is reviewing your confirmation.
+              {% else %} will review after you confirm delivery. {% endif %}
+            </span>
+          </li>
+        </ul>
+
+        {% if booking.customer_confirmed_at %}
+        <div class="completion-success mt-3">
+          <i class="bi bi-send-check"></i>
+          <div>
+            <strong>Your confirmation was sent to admin</strong>
+            <div>
+              Submitted {{ booking.customer_confirmed_at|date:"d M Y, h:i A" }}
+            </div>
+          </div>
         </div>
-    </header>
-
-    <div class="row g-4 align-items-start">
-        <div class="col-12 col-xl-8">
-            {% if booking.status == "CONFIRMED" %}
-                <section class="booking-section-card completion-card {% if can_confirm_completion %}is-ready{% endif %} mb-4"
-                         aria-labelledby="completion-heading">
-                    <div class="booking-section-heading">
-                        <span class="booking-section-icon"><i class="bi bi-patch-check"></i></span>
-                        <div>
-                            <h3 id="completion-heading">Confirm your event is complete</h3>
-                            <p>The seller reports completion, you confirm delivery, then admin reviews it before payouts unlock.</p>
-                        </div>
-                    </div>
-
-                    <ul class="completion-steps">
-                        <li class="completion-step {% if event_has_ended %}is-complete{% endif %}">
-                            <i class="bi {% if event_has_ended %}bi-check-circle-fill{% else %}bi-calendar-event{% endif %}"></i>
-                            <span>
-                                Event end date:
-                                <strong>{{ booking.booking_end_date|default:booking.booking_date|date:"l, d F Y" }}</strong>
-                                {% if not event_has_ended %} — confirmation opens after this date.{% endif %}
-                            </span>
-                        </li>
-                        {% for decision in seller_decisions %}
-                            <li class="completion-step {% if decision.seller_completed_at %}is-complete{% endif %}">
-                                <i class="bi {% if decision.seller_completed_at %}bi-check-circle-fill{% else %}bi-hourglass-split{% endif %}"></i>
-                                <span>
-                                    <strong>{{ decision.seller.business_name }}</strong>
-                                    {% if decision.seller_completed_at %}
-                                        reported completion {{ decision.seller_completed_at|date:"d M Y" }}.
-                                    {% else %}
-                                        has not reported completion yet.
-                                    {% endif %}
-                                </span>
-                            </li>
-                        {% empty %}
-                            <li class="completion-step">
-                                <i class="bi bi-hourglass-split"></i>
-                                <span>Seller completion details are not available yet.</span>
-                            </li>
-                        {% endfor %}
-                        <li class="completion-step {% if booking.admin_completed_at %}is-complete{% endif %}">
-                            <i class="bi {% if booking.admin_completed_at %}bi-check-circle-fill{% else %}bi-hourglass-split{% endif %}"></i>
-                            <span>
-                                <strong>Admin review</strong>
-                                {% if booking.admin_completed_at %}
-                                    approved completion {{ booking.admin_completed_at|date:"d M Y" }}.
-                                {% elif booking.customer_confirmed_at %}
-                                    is reviewing your confirmation.
-                                {% else %}
-                                    will review after you confirm delivery.
-                                {% endif %}
-                            </span>
-                        </li>
-                    </ul>
-
-                    {% if booking.customer_confirmed_at %}
-                        <div class="completion-success mt-3">
-                            <i class="bi bi-send-check"></i>
-                            <div>
-                                <strong>Your confirmation was sent to admin</strong>
-                                <div>Submitted {{ booking.customer_confirmed_at|date:"d M Y, h:i A" }}</div>
-                            </div>
-                        </div>
-                    {% elif booking.customer_completion_rejected_at %}
-                        <div class="alert alert-danger rounded-3 mt-3 shadow-sm" role="alert">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="bi bi-exclamation-octagon-fill fs-5 text-danger"></i>
-                                <strong>Completion Disputed / Rejected by You</strong>
-                            </div>
-                            <div class="small text-muted mb-2">
-                                Reported on {{ booking.customer_completion_rejected_at|date:"d M Y, h:i A" }}.
-                            </div>
-                            <div class="p-2 rounded bg-white text-dark small mb-2 border">
-                                <strong>Your explanation:</strong> {{ booking.customer_completion_rejection_reason }}
-                            </div>
-                            {% if booking.customer_completion_proof %}
-                                <div class="mt-2 mb-2">
-                                    <a href="{{ booking.customer_completion_proof.url }}" target="_blank" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-paperclip me-1"></i> View Uploaded Proof File
-                                    </a>
-                                </div>
-                            {% endif %}
-                            <hr class="my-2">
-                            <div class="mt-2">
-                                <span class="small text-secondary d-block mb-2">If your dispute has been resolved with the seller, you can confirm completion:</span>
-                                <form method="post" action="{% url 'confirm-booking-completion' booking.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success">
-                                        <i class="bi bi-check-circle me-1"></i> Confirm event completed now
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="d-flex flex-wrap gap-2 mt-3">
-                            <form method="post" action="{% url 'confirm-booking-completion' booking.pk %}" class="flex-grow-1">
-                                {% csrf_token %}
-                                <button type="submit" class="completion-confirm-button w-100"
-                                        {% if not can_confirm_completion %}disabled aria-describedby="completion-hint"{% endif %}>
-                                    <i class="bi bi-check-circle me-1"></i> Confirm event completed
-                                </button>
-                            </form>
-                            {% if can_confirm_completion %}
-                                <button type="button" class="btn btn-outline-danger btn-sm px-3 mt-3 d-flex align-items-center"
-                                        data-bs-toggle="collapse" data-bs-target="#rejectCompletionCollapse" aria-expanded="false">
-                                    <i class="bi bi-x-circle me-1"></i> Reject / Report Not Completed
-                                </button>
-                            {% endif %}
-                        </div>
-
-                        {% if can_confirm_completion %}
-                            <div class="collapse mt-3" id="rejectCompletionCollapse">
-                                <div class="card card-body border-danger bg-light">
-                                    <h5 class="card-title text-danger fs-6 fw-bold">
-                                        <i class="bi bi-shield-exclamation me-1"></i> Report Event Not Completed
-                                    </h5>
-                                    <p class="small text-secondary mb-3">
-                                        If the seller did not deliver the services, please provide an explanation and upload supporting proof (photos, documents, etc.).
-                                    </p>
-                                    <form method="post" action="{% url 'reject-booking-completion' booking.pk %}" enctype="multipart/form-data">
-                                        {% csrf_token %}
-                                        <div class="mb-3">
-                                            <label for="rejection_reason" class="form-label small fw-semibold">Reason / Description of Issue *</label>
-                                            <textarea name="rejection_reason" id="rejection_reason" class="form-control form-control-sm" rows="3"
-                                                      placeholder="Describe what was not completed or delivered..." required></textarea>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="rejection_proof" class="form-label small fw-semibold">Proof of Non-Completion (Photo, Receipt, or Document)</label>
-                                            <input type="file" name="rejection_proof" id="rejection_proof" class="form-control form-control-sm"
-                                                   accept="image/*,.pdf,.doc,.docx,.txt">
-                                            <div class="form-text small">Accepted formats: JPG, PNG, PDF, DOC, DOCX.</div>
-                                        </div>
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="bi bi-send me-1"></i> Submit Rejection &amp; Proof
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        <p class="completion-hint mt-2" id="completion-hint">
-                            {% if can_confirm_completion %}
-                                The seller has reported completion. Please confirm if services were delivered, or report with proof if not.
-                            {% else %}
-                                This action becomes available after the seller reports the event complete.
-                            {% endif %}
-                        </p>
-                    {% endif %}
-                </section>
-            {% elif booking.status == "COMPLETED" %}
-                <section class="booking-section-card completion-card is-done mb-4">
-                    <div class="completion-success">
-                        <i class="bi bi-patch-check-fill"></i>
-                        <div>
-                            <strong>Event completion confirmed</strong>
-                            <div>
-                                {% if booking.customer_confirmed_at %}
-                                    Admin approved completion on {{ booking.admin_completed_at|date:"d M Y, h:i A"|default:"the recorded completion date" }}.
-                                    Seller payout eligibility follows the payout schedule.
-                                {% else %}
-                                    This booking was marked as completed previously.
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            {% endif %}
-
-            <section class="booking-section-card mb-4">
-                <div class="booking-section-heading">
-                    <span class="booking-section-icon"><i class="bi bi-calendar2-heart"></i></span>
-                    <div>
-                        <h3>Event and booking information</h3>
-                        <p>Details submitted with this booking.</p>
-                    </div>
-                </div>
-
-                <div class="booking-info-grid">
-                    <div class="booking-info-item">
-                        <span class="booking-info-label">Booked item</span>
-                        <div class="booking-info-value">{{ booking.item_title }}</div>
-                        <span class="badge rounded-pill text-bg-light mt-2">{{ booking.get_item_type_display }}</span>
-                    </div>
-                    <div class="booking-info-item">
-                        <span class="booking-info-label">Event</span>
-                        <div class="booking-info-value">
-                            {% if booking.package_event %}{{ booking.package_event.title }}
-                            {% elif booking.event %}{{ booking.event.title }}
-                            {% elif booking.service %}{{ booking.service.name }}
-                            {% elif booking.custom_package %}{{ booking.custom_package.package_title|default:"My package" }}
-                            {% else %}{{ booking.item_title }}{% endif %}
-                        </div>
-                    </div>
-                    <div class="booking-info-item">
-                        <span class="booking-info-label"><i class="bi bi-calendar-event me-1"></i>Start date</span>
-                        <div class="booking-info-value">{{ booking.booking_date|date:"l, d F Y" }}</div>
-                    </div>
-                    {% if booking.booking_end_date %}
-                        <div class="booking-info-item">
-                            <span class="booking-info-label"><i class="bi bi-calendar-check me-1"></i>End date</span>
-                            <div class="booking-info-value">{{ booking.booking_end_date|date:"l, d F Y" }}</div>
-                        </div>
-                    {% endif %}
-                    <div class="booking-info-item">
-                        <span class="booking-info-label"><i class="bi bi-people me-1"></i>Guests</span>
-                        <div class="booking-info-value">{{ booking.guest_count }}</div>
-                    </div>
-                    <div class="booking-info-item">
-                        <span class="booking-info-label">Booking reference</span>
-                        <div class="booking-info-value">#{{ booking.pk }}</div>
-                    </div>
-
-                    {% if booking.package_services.all %}
-                        <div class="booking-info-item" style="grid-column: 1 / -1;">
-                            <span class="booking-info-label">Included services</span>
-                            <div class="booking-service-list">
-                                {% for service in booking.package_services.all %}
-                                    <span class="booking-service-chip"><i class="bi bi-check2"></i>{{ service.name }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    {% if booking.seller %}
-                        <div class="booking-info-item">
-                            <span class="booking-info-label">Seller</span>
-                            <div class="booking-info-value">{{ booking.seller.business_name }}</div>
-                        </div>
-                        <div class="booking-info-item">
-                            <span class="booking-info-label">SELLER CONTACT</span>
-                            {% if booking.seller.phone %}
-                                <div class="booking-info-value"><a href="tel:{{ booking.seller.phone }}">{{ booking.seller.phone }}</a></div>
-                            {% endif %}
-                            {% if booking.seller.user.email %}
-                                <div class="booking-info-value"><a href="mailto:{{ booking.seller.user.email }}">{{ booking.seller.user.email }}</a></div>
-                            {% endif %}
-                            {% if booking.seller.address %}
-                                <div class="booking-info-value">{{ booking.seller.address }}</div>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                {% if booking.customer_notes %}
-                    <div class="mt-4">
-                        <span class="booking-info-label"><i class="bi bi-chat-left-text me-1"></i>Your notes</span>
-                        <div class="booking-notes">{{ booking.customer_notes|linebreaksbr }}</div>
-                    </div>
-                {% endif %}
-                {% if booking.rejection_reason %}
-                    <div class="alert alert-danger mt-4 mb-0">
-                        <strong>Reason:</strong> {{ booking.rejection_reason }}
-                    </div>
-                {% endif %}
-            </section>
-
-            <section class="booking-section-card">
-                <div class="booking-section-heading">
-                    <span class="booking-section-icon"><i class="bi bi-activity"></i></span>
-                    <div>
-                        <h3>Booking status</h3>
-                        <p>Latest update {{ booking.updated_at|date:"d M Y, h:i A" }}.</p>
-                    </div>
-                </div>
-
-                {% if booking.status == "PENDING" %}
-                    <div class="booking-status-message">
-                        <i class="bi bi-hourglass-split"></i>
-                        <div><h4>Waiting for seller response</h4><p>Your request is in the seller’s review queue. We’ll update this booking when they respond.</p></div>
-                    </div>
-                {% elif booking.status == "CONFIRMED" %}
-                    <div class="booking-status-message">
-                        <i class="bi bi-check-circle"></i>
-                        <div><h4>Your booking is confirmed</h4><p>Keep this booking reference handy. After the event, the seller will report completion here for you to confirm.</p></div>
-                    </div>
-                {% elif booking.status == "COMPLETED" %}
-                    <div class="booking-status-message status-success">
-                        <i class="bi bi-patch-check"></i>
-                        <div><h4>Event completed</h4><p>Thank you for choosing EventSphere. Your completion confirmation has been recorded.</p></div>
-                    </div>
-                {% elif booking.status == "REJECTED" %}
-                    <div class="booking-status-message status-danger">
-                        <i class="bi bi-x-circle"></i>
-                        <div><h4>Booking not accepted</h4><p>This request was not accepted. You can explore other events, services, or packages.</p></div>
-                    </div>
-                {% else %}
-                    <div class="booking-status-message">
-                        <i class="bi bi-calendar2-x"></i>
-                        <div><h4>Booking cancelled</h4><p>This booking remains available in your history.</p></div>
-                    </div>
-                {% endif %}
-            </section>
-        </div>
-
-        <aside class="col-12 col-xl-4">
-            <section class="booking-section-card booking-summary-card mb-4">
-                <div class="booking-section-heading">
-                    <span class="booking-section-icon"><i class="bi bi-receipt"></i></span>
-                    <div><h3>Payment summary</h3><p>Price and payment status.</p></div>
-                </div>
-                <div class="booking-summary-total">
-                    <span>Total booking value</span>
-                    <strong>₹{{ booking.total_price|floatformat:2 }}</strong>
-                </div>
-                {% if booking.payment_attempt %}
-                    <div class="booking-summary-line">
-                        <span>Payment status</span>
-                        {% if booking.payment_attempt.status == "PAID" %}
-                            <span class="booking-payment-status"><i class="bi bi-check-circle-fill"></i> Paid</span>
-                        {% else %}
-                            <strong>{{ booking.payment_attempt.get_status_display }}</strong>
-                        {% endif %}
-                    </div>
-                    <div class="booking-summary-line">
-                        <span>Amount paid</span>
-                        <strong>₹{{ booking.payment_attempt.amount|floatformat:2 }}</strong>
-                    </div>
-                    <div class="booking-summary-line">
-                        <span>Payment reference</span>
-                        <strong>{{ booking.payment_reference }}</strong>
-                    </div>
-                    <div class="booking-summary-line">
-                        <span>Payment date</span>
-                        <strong>{{ booking.payment_attempt.created_at|date:"d M Y" }}</strong>
-                    </div>
-                {% else %}
-                    <div class="booking-summary-line">
-                        <span>Payment</span><strong>Not recorded online</strong>
-                    </div>
-                {% endif %}
-            </section>
-
-            {% if booking.customer_name or booking.customer_email or booking.customer_phone %}
-                <section class="booking-section-card mb-4">
-                    <div class="booking-section-heading">
-                        <span class="booking-section-icon"><i class="bi bi-person-lines-fill"></i></span>
-                        <div><h3>Contact details</h3><p>Contact used for this booking.</p></div>
-                    </div>
-                    {% if booking.customer_name %}
-                        <div class="booking-summary-line"><span>Name</span><strong>{{ booking.customer_name }}</strong></div>
-                    {% endif %}
-                    {% if booking.customer_email %}
-                        <div class="booking-summary-line"><span>Email</span><strong>{{ booking.customer_email }}</strong></div>
-                    {% endif %}
-                    {% if booking.customer_phone %}
-                        <div class="booking-summary-line"><span>Phone</span><strong>{{ booking.customer_phone }}</strong></div>
-                    {% endif %}
-                </section>
-            {% endif %}
-
-            {% if can_request_cancellation %}
-                <section class="booking-cancel mb-4">
-                    <h3><i class="bi bi-info-circle me-1"></i>Need to cancel?</h3>
-                    {% if cancellation_request %}
-                        <p class="mb-1">Cancellation request: <strong>{{ cancellation_request.get_status_display }}</strong></p>
-                        {% if cancellation_request.admin_note %}<p class="mb-0">{{ cancellation_request.admin_note }}</p>{% endif %}
-                    {% else %}
-                        <p>Request cancellation and our team will review any refund before processing it.</p>
-                        <form method="post" action="{% url 'cancel-booking' booking.id %}">
-                            {% csrf_token %}
-                            <label class="form-label small fw-semibold" for="cancellation-reason">Reason for cancellation</label>
-                            <textarea class="form-control form-control-sm mb-2" id="cancellation-reason" name="reason" maxlength="1000" required></textarea>
-                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-                                <i class="bi bi-send me-1"></i> Request cancellation
-                            </button>
-                        </form>
-                    {% endif %}
-                </section>
-            {% endif %}
-
-            {% if booking.status == "REJECTED" and cancellation_request %}
-                <section class="booking-cancel mb-4">
-                    <h3><i class="bi bi-arrow-counterclockwise me-1"></i>Refund review</h3>
-                    <p class="mb-1">A seller declined this booking. Refund status: <strong>{{ cancellation_request.get_status_display }}</strong>.</p>
-                    {% if cancellation_request.refund_id %}<p class="mb-0">Refund reference: {{ cancellation_request.refund_id }}</p>{% endif %}
-                </section>
-            {% endif %}
-
-            {% if can_review_booking %}
-                <section class="booking-section-card mb-4">
-                    <div class="booking-section-heading">
-                        <span class="booking-section-icon"><i class="bi bi-star"></i></span>
-                        <div>
-                            {% if booking.item_type == "EVENT" or booking.item_type == "SERVICE" %}
-                                <h3>Review this event or service</h3>
-                            {% else %}
-                                <h3>Review this package</h3>
-                            {% endif %}
-                            <p>Share your feedback after confirming this booking is complete.</p>
-                        </div>
-                    </div>
-                    <form method="post" action="{% url 'submit-package-review' booking.pk %}">
-                        {% csrf_token %}
-                        <label class="form-label small fw-semibold" for="package-rating">Your rating</label>
-                        <select class="form-select form-select-sm mb-2" id="package-rating" name="rating" required>
-                            <option value="">Choose a rating</option>
-                            <option value="5">★★★★★ — Excellent</option>
-                            <option value="4">★★★★ — Very good</option>
-                            <option value="3">★★★ — Good</option>
-                            <option value="2">★★ — Fair</option>
-                            <option value="1">★ — Poor</option>
-                        </select>
-                        <label class="form-label small fw-semibold" for="package-review-comment">Review (optional)</label>
-                        <textarea class="form-control form-control-sm mb-3" id="package-review-comment" name="comment" maxlength="2000" rows="3"></textarea>
-                        {% if booking.item_type == "CATALOG_PACKAGE" or booking.item_type == "CUSTOM_PACKAGE" %}
-                            <p class="small text-secondary">Your rating and comment will be shown on every service included in this package.</p>
-                            <button class="btn btn-gold btn-sm w-100" type="submit">Submit review for included services</button>
-                        {% else %}
-                            <button class="btn btn-gold btn-sm w-100" type="submit">Submit review</button>
-                        {% endif %}
-                    </form>
-                </section>
-            {% elif completion_confirmed and review_submitted %}
-                <section class="booking-section-card mb-4">
-                    <div class="booking-section-heading">
-                        <span class="booking-section-icon"><i class="bi bi-star-fill"></i></span>
-                        <div>
-                            <h3>Thank you for your feedback</h3>
-                            {% if booking.item_type == "EVENT" %}
-                                <p>Your rating and comment are visible to other customers viewing this event.</p>
-                            {% elif booking.item_type == "SERVICE" %}
-                                <p>Your rating and comment are visible to other customers viewing this service.</p>
-                            {% else %}
-                                <p>Your rating and comment are visible on the services included in this completed package.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </section>
-            {% endif %}
-
-            <a href="{% url 'public-packages' %}" class="booking-secondary-link">
-                <i class="bi bi-search"></i> Explore more packages
+        {% elif booking.customer_completion_rejected_at %}
+        <div class="alert alert-danger rounded-3 mt-3 shadow-sm" role="alert">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-exclamation-octagon-fill fs-5 text-danger"></i>
+            <strong>Completion Disputed / Rejected by You</strong>
+          </div>
+          <div class="small text-muted mb-2">
+            Reported on {{ booking.customer_completion_rejected_at|date:"d M Y,
+            h:i A" }}.
+          </div>
+          <div class="p-2 rounded bg-white text-dark small mb-2 border">
+            <strong>Your explanation:</strong> {{
+            booking.customer_completion_rejection_reason }}
+          </div>
+          {% if booking.customer_completion_proof %}
+          <div class="mt-2 mb-2">
+            <a
+              href="{{ booking.customer_completion_proof.url }}"
+              target="_blank"
+              class="btn btn-sm btn-outline-danger"
+            >
+              <i class="bi bi-paperclip me-1"></i> View Uploaded Proof File
             </a>
-        </aside>
+          </div>
+          {% endif %}
+          <hr class="my-2" />
+          <div class="mt-2">
+            <span class="small text-secondary d-block mb-2"
+              >If your dispute has been resolved with the seller, you can
+              confirm completion:</span
+            >
+            <form
+              method="post"
+              action="{% url 'confirm-booking-completion' booking.pk %}"
+            >
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-success">
+                <i class="bi bi-check-circle me-1"></i> Confirm event completed
+                now
+              </button>
+            </form>
+          </div>
+        </div>
+        {% else %}
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <form
+            method="post"
+            action="{% url 'confirm-booking-completion' booking.pk %}"
+            class="flex-grow-1"
+          >
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="completion-confirm-button w-100"
+              {%
+              if
+              not
+              can_confirm_completion
+              %}disabled
+              aria-describedby="completion-hint"
+              {%
+              endif
+              %}
+            >
+              <i class="bi bi-check-circle me-1"></i> Confirm event completed
+            </button>
+          </form>
+          {% if can_confirm_completion %}
+          <button
+            type="button"
+            class="btn btn-outline-danger btn-sm px-3 mt-3 d-flex align-items-center"
+            data-bs-toggle="collapse"
+            data-bs-target="#rejectCompletionCollapse"
+            aria-expanded="false"
+          >
+            <i class="bi bi-x-circle me-1"></i> Reject / Report Not Completed
+          </button>
+          {% endif %}
+        </div>
+
+        {% if can_confirm_completion %}
+        <div class="collapse mt-3" id="rejectCompletionCollapse">
+          <div class="card card-body border-danger bg-light">
+            <h5 class="card-title text-danger fs-6 fw-bold">
+              <i class="bi bi-shield-exclamation me-1"></i> Report Event Not
+              Completed
+            </h5>
+            <p class="small text-secondary mb-3">
+              If the seller did not deliver the services, please provide an
+              explanation and upload supporting proof (photos, documents, etc.).
+            </p>
+            <form
+              method="post"
+              action="{% url 'reject-booking-completion' booking.pk %}"
+              enctype="multipart/form-data"
+            >
+              {% csrf_token %}
+              <div class="mb-3">
+                <label
+                  for="rejection_reason"
+                  class="form-label small fw-semibold"
+                  >Reason / Description of Issue *</label
+                >
+                <textarea
+                  name="rejection_reason"
+                  id="rejection_reason"
+                  class="form-control form-control-sm"
+                  rows="3"
+                  placeholder="Describe what was not completed or delivered..."
+                  required
+                ></textarea>
+              </div>
+              <div class="mb-3">
+                <label
+                  for="rejection_proof"
+                  class="form-label small fw-semibold"
+                  >Proof of Non-Completion (Photo, Receipt, or Document)</label
+                >
+                <input
+                  type="file"
+                  name="rejection_proof"
+                  id="rejection_proof"
+                  class="form-control form-control-sm"
+                  accept="image/*,.pdf,.doc,.docx,.txt"
+                />
+                <div class="form-text small">
+                  Accepted formats: JPG, PNG, PDF, DOC, DOCX.
+                </div>
+              </div>
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="bi bi-send me-1"></i> Submit Rejection &amp; Proof
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endif %}
+
+        <p class="completion-hint mt-2" id="completion-hint">
+          {% if can_confirm_completion %} The seller has reported completion.
+          Please confirm if services were delivered, or report with proof if
+          not. {% else %} This action becomes available after the seller reports
+          the event complete. {% endif %}
+        </p>
+        {% endif %}
+      </section>
+      {% elif booking.status == "COMPLETED" %}
+      <section class="booking-section-card completion-card is-done mb-4">
+        <div class="completion-success">
+          <i class="bi bi-patch-check-fill"></i>
+          <div>
+            <strong>Event completion confirmed</strong>
+            <div>
+              {% if booking.customer_confirmed_at %} Admin approved completion
+              on {{ booking.admin_completed_at|date:"d M Y, h:i A"|default:"the
+              recorded completion date" }}. Seller payout eligibility follows
+              the payout schedule. {% else %} This booking was marked as
+              completed previously. {% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+      {% endif %}
+
+      <section class="booking-section-card mb-4">
+        <div class="booking-section-heading">
+          <span class="booking-section-icon"
+            ><i class="bi bi-calendar2-heart"></i
+          ></span>
+          <div>
+            <h3>Event and booking information</h3>
+            <p>Details submitted with this booking.</p>
+          </div>
+        </div>
+
+        <div class="booking-info-grid">
+          <div class="booking-info-item">
+            <span class="booking-info-label">Booked item</span>
+            <div class="booking-info-value">{{ booking.item_title }}</div>
+            <span class="badge rounded-pill text-bg-light mt-2"
+              >{{ booking.get_item_type_display }}</span
+            >
+          </div>
+          <div class="booking-info-item">
+            <span class="booking-info-label">Event</span>
+            <div class="booking-info-value">
+              {% if booking.package_event %}{{ booking.package_event.title }} {%
+              elif booking.event %}{{ booking.event.title }} {% elif
+              booking.service %}{{ booking.service.name }} {% elif
+              booking.custom_package %}{{
+              booking.custom_package.package_title|default:"My package" }} {%
+              else %}{{ booking.item_title }}{% endif %}
+            </div>
+          </div>
+          <div class="booking-info-item">
+            <span class="booking-info-label"
+              ><i class="bi bi-calendar-event me-1"></i>Start date</span
+            >
+            <div class="booking-info-value">
+              {{ booking.booking_date|date:"l, d F Y" }}
+            </div>
+          </div>
+          {% if booking.booking_end_date %}
+          <div class="booking-info-item">
+            <span class="booking-info-label"
+              ><i class="bi bi-calendar-check me-1"></i>End date</span
+            >
+            <div class="booking-info-value">
+              {{ booking.booking_end_date|date:"l, d F Y" }}
+            </div>
+          </div>
+          {% endif %}
+          <div class="booking-info-item">
+            <span class="booking-info-label"
+              ><i class="bi bi-people me-1"></i>Guests</span
+            >
+            <div class="booking-info-value">{{ booking.guest_count }}</div>
+          </div>
+          <div class="booking-info-item">
+            <span class="booking-info-label">Booking reference</span>
+            <div class="booking-info-value">#{{ booking.pk }}</div>
+          </div>
+
+          {% if booking.package_services.all %}
+          <div class="booking-info-item" style="grid-column: 1 / -1">
+            <span class="booking-info-label">Included services</span>
+            <div class="booking-service-list">
+              {% for service in booking.package_services.all %}
+              <span class="booking-service-chip"
+                ><i class="bi bi-check2"></i>{{ service.name }}</span
+              >
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %} {% if booking.seller %}
+          <div class="booking-info-item">
+            <span class="booking-info-label">Seller</span>
+            <div class="booking-info-value">
+              {{ booking.seller.business_name }}
+            </div>
+          </div>
+          <div class="booking-info-item">
+            <span class="booking-info-label">SELLER CONTACT</span>
+            {% if booking.seller.phone %}
+            <div class="booking-info-value">
+              <a href="tel:{{ booking.seller.phone }}"
+                >{{ booking.seller.phone }}</a
+              >
+            </div>
+            {% endif %} {% if booking.seller.user.email %}
+            <div class="booking-info-value">
+              <a href="mailto:{{ booking.seller.user.email }}"
+                >{{ booking.seller.user.email }}</a
+              >
+            </div>
+            {% endif %} {% if booking.seller.address %}
+            <div class="booking-info-value">{{ booking.seller.address }}</div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        {% if booking.customer_notes %}
+        <div class="mt-4">
+          <span class="booking-info-label"
+            ><i class="bi bi-chat-left-text me-1"></i>Your notes</span
+          >
+          <div class="booking-notes">
+            {{ booking.customer_notes|linebreaksbr }}
+          </div>
+        </div>
+        {% endif %} {% if booking.rejection_reason %}
+        <div class="alert alert-danger mt-4 mb-0">
+          <strong>Reason:</strong> {{ booking.rejection_reason }}
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="booking-section-card">
+        <div class="booking-section-heading">
+          <span class="booking-section-icon"
+            ><i class="bi bi-activity"></i
+          ></span>
+          <div>
+            <h3>Booking status</h3>
+            <p>Latest update {{ booking.updated_at|date:"d M Y, h:i A" }}.</p>
+          </div>
+        </div>
+
+        {% if booking.status == "PENDING" %}
+        <div class="booking-status-message">
+          <i class="bi bi-hourglass-split"></i>
+          <div>
+            <h4>Waiting for seller response</h4>
+            <p>
+              Your request is in the seller’s review queue. We’ll update this
+              booking when they respond.
+            </p>
+          </div>
+        </div>
+        {% elif booking.status == "CONFIRMED" %}
+        <div class="booking-status-message">
+          <i class="bi bi-check-circle"></i>
+          <div>
+            <h4>Your booking is confirmed</h4>
+            <p>
+              Keep this booking reference handy. After the event, the seller
+              will report completion here for you to confirm.
+            </p>
+          </div>
+        </div>
+        {% elif booking.status == "COMPLETED" %}
+        <div class="booking-status-message status-success">
+          <i class="bi bi-patch-check"></i>
+          <div>
+            <h4>Event completed</h4>
+            <p>
+              Thank you for choosing EventSphere. Your completion confirmation
+              has been recorded.
+            </p>
+          </div>
+        </div>
+        {% elif booking.status == "REJECTED" %}
+        <div class="booking-status-message status-danger">
+          <i class="bi bi-x-circle"></i>
+          <div>
+            <h4>Booking not accepted</h4>
+            <p>
+              This request was not accepted. You can explore other events,
+              services, or packages.
+            </p>
+          </div>
+        </div>
+        {% else %}
+        <div class="booking-status-message">
+          <i class="bi bi-calendar2-x"></i>
+          <div>
+            <h4>Booking cancelled</h4>
+            <p>This booking remains available in your history.</p>
+          </div>
+        </div>
+        {% endif %}
+      </section>
     </div>
+
+    <aside class="col-12 col-xl-4">
+      <section class="booking-section-card booking-summary-card mb-4">
+        <div class="booking-section-heading">
+          <span class="booking-section-icon"
+            ><i class="bi bi-receipt"></i
+          ></span>
+          <div>
+            <h3>Payment summary</h3>
+            <p>Price and payment status.</p>
+          </div>
+        </div>
+        <div class="booking-summary-total">
+          <span>Total booking value</span>
+          <strong>₹{{ booking.total_price|floatformat:2 }}</strong>
+        </div>
+        {% if booking.payment_attempt %}
+        <div class="booking-summary-line">
+          <span>Payment status</span>
+          {% if booking.payment_attempt.status == "PAID" %}
+          <span class="booking-payment-status"
+            ><i class="bi bi-check-circle-fill"></i> Paid</span
+          >
+          {% else %}
+          <strong>{{ booking.payment_attempt.get_status_display }}</strong>
+          {% endif %}
+        </div>
+        <div class="booking-summary-line">
+          <span>Amount paid</span>
+          <strong>₹{{ booking.payment_attempt.amount|floatformat:2 }}</strong>
+        </div>
+        <div class="booking-summary-line">
+          <span>Payment reference</span>
+          <strong>{{ booking.payment_reference }}</strong>
+        </div>
+        <div class="booking-summary-line">
+          <span>Payment date</span>
+          <strong>{{ booking.payment_attempt.created_at|date:"d M Y" }}</strong>
+        </div>
+        {% else %}
+        <div class="booking-summary-line">
+          <span>Payment</span><strong>Not recorded online</strong>
+        </div>
+        {% endif %}
+      </section>
+
+      {% if booking.customer_name or booking.customer_email or
+      booking.customer_phone %}
+      <section class="booking-section-card mb-4">
+        <div class="booking-section-heading">
+          <span class="booking-section-icon"
+            ><i class="bi bi-person-lines-fill"></i
+          ></span>
+          <div>
+            <h3>Contact details</h3>
+            <p>Contact used for this booking.</p>
+          </div>
+        </div>
+        {% if booking.customer_name %}
+        <div class="booking-summary-line">
+          <span>Name</span><strong>{{ booking.customer_name }}</strong>
+        </div>
+        {% endif %} {% if booking.customer_email %}
+        <div class="booking-summary-line">
+          <span>Email</span><strong>{{ booking.customer_email }}</strong>
+        </div>
+        {% endif %} {% if booking.customer_phone %}
+        <div class="booking-summary-line">
+          <span>Phone</span><strong>{{ booking.customer_phone }}</strong>
+        </div>
+        {% endif %}
+      </section>
+      {% endif %} {% if can_request_cancellation %}
+      <section class="booking-cancel mb-4">
+        <h3><i class="bi bi-info-circle me-1"></i>Need to cancel?</h3>
+        {% if cancellation_request %}
+        <p class="mb-1">
+          Cancellation request:
+          <strong>{{ cancellation_request.get_status_display }}</strong>
+        </p>
+        {% if cancellation_request.admin_note %}
+        <p class="mb-0">{{ cancellation_request.admin_note }}</p>
+        {% endif %} {% else %}
+        <p>
+          Request cancellation and our team will review any refund before
+          processing it.
+        </p>
+        <form method="post" action="{% url 'cancel-booking' booking.id %}">
+          {% csrf_token %}
+          <label class="form-label small fw-semibold" for="cancellation-reason"
+            >Reason for cancellation</label
+          >
+          <textarea
+            class="form-control form-control-sm mb-2"
+            id="cancellation-reason"
+            name="reason"
+            maxlength="1000"
+            required
+          ></textarea>
+          <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+            <i class="bi bi-send me-1"></i> Request cancellation
+          </button>
+        </form>
+        {% endif %}
+      </section>
+      {% endif %} {% if booking.status == "REJECTED" and cancellation_request %}
+      <section class="booking-cancel mb-4">
+        <h3><i class="bi bi-arrow-counterclockwise me-1"></i>Refund review</h3>
+        <p class="mb-1">
+          A seller declined this booking. Refund status:
+          <strong>{{ cancellation_request.get_status_display }}</strong>.
+        </p>
+        {% if cancellation_request.refund_id %}
+        <p class="mb-0">
+          Refund reference: {{ cancellation_request.refund_id }}
+        </p>
+        {% endif %}
+      </section>
+      {% endif %} {% if can_review_booking %}
+      <section class="booking-section-card mb-4">
+        <div class="booking-section-heading">
+          <span class="booking-section-icon"><i class="bi bi-star"></i></span>
+          <div>
+            {% if booking.item_type == "EVENT" or booking.item_type == "SERVICE"
+            %}
+            <h3>Review this event or service</h3>
+            {% else %}
+            <h3>Review this package</h3>
+            {% endif %}
+            <p>
+              Share your feedback after confirming this booking is complete.
+            </p>
+          </div>
+        </div>
+        <form
+          method="post"
+          action="{% url 'submit-package-review' booking.pk %}"
+        >
+          {% csrf_token %}
+          <label class="form-label small fw-semibold" for="package-rating"
+            >Your rating</label
+          >
+          <select
+            class="form-select form-select-sm mb-2"
+            id="package-rating"
+            name="rating"
+            required
+          >
+            <option value="">Choose a rating</option>
+            <option value="5">★★★★★ — Excellent</option>
+            <option value="4">★★★★ — Very good</option>
+            <option value="3">★★★ — Good</option>
+            <option value="2">★★ — Fair</option>
+            <option value="1">★ — Poor</option>
+          </select>
+          <label
+            class="form-label small fw-semibold"
+            for="package-review-comment"
+            >Review (optional)</label
+          >
+          <textarea
+            class="form-control form-control-sm mb-3"
+            id="package-review-comment"
+            name="comment"
+            maxlength="2000"
+            rows="3"
+          ></textarea>
+          {% if booking.item_type == "CATALOG_PACKAGE" or booking.item_type ==
+          "CUSTOM_PACKAGE" %}
+          <p class="small text-secondary">
+            Your rating and comment will be shown on every service included in
+            this package.
+          </p>
+          <button class="btn btn-gold btn-sm w-100" type="submit">
+            Submit review for included services
+          </button>
+          {% else %}
+          <button class="btn btn-gold btn-sm w-100" type="submit">
+            Submit review
+          </button>
+          {% endif %}
+        </form>
+      </section>
+      {% elif completion_confirmed and review_submitted %}
+      <section class="booking-section-card mb-4">
+        <div class="booking-section-heading">
+          <span class="booking-section-icon"
+            ><i class="bi bi-star-fill"></i
+          ></span>
+          <div>
+            <h3>Thank you for your feedback</h3>
+            {% if booking.item_type == "EVENT" %}
+            <p>
+              Your rating and comment are visible to other customers viewing
+              this event.
+            </p>
+            {% elif booking.item_type == "SERVICE" %}
+            <p>
+              Your rating and comment are visible to other customers viewing
+              this service.
+            </p>
+            {% else %}
+            <p>
+              Your rating and comment are visible on the services included in
+              this completed package.
+            </p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+      {% endif %}
+
+      <a href="{% url 'public-packages' %}" class="booking-secondary-link">
+        <i class="bi bi-search"></i> Explore more packages
+      </a>
+    </aside>
+  </div>
 </div>
 {% endblock %}

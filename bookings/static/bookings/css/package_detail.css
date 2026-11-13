@@ -28,7 +28,7 @@
 
   .package-detail-layout {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: 1.5rem;
   }
@@ -44,17 +44,3 @@
     object-fit: cover;
   }
 
-  .package-detail-summary {
-    position: sticky;
-    top: 100px;
-  }
-
-  @media (max-width: 991.98px) {
-    .package-detail-layout {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    .package-detail-summary {
-      position: static;
-    }
-  }

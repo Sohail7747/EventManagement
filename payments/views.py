@@ -23,6 +23,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
+from admin_panel.analytics import monthly_amounts
+from admin_panel.models import Profile, Seller
 from bookings.forms import PackageBookingForm
 from bookings.models import (
     Booking,
@@ -41,8 +43,6 @@ from bookings.availability import (
 )
 from bookings.notifications import send_booking_email
 from packages.models import EventPackage
-from admin_panel.models import Profile, Seller
-from admin_panel.analytics import monthly_amounts
 from packages.models import CatalogPackage
 from packages.pricing import PACKAGE_GUEST_PRICE
 
