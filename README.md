@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# event
-test
-=======
 # 🎉 Event Management System
 
 ## 📌 Project Overview
