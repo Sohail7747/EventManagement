@@ -554,6 +554,7 @@
             serviceName.textContent = offer.service_name;
             const sellerName = document.createElement("span");
             sellerName.textContent = offer.seller_name;
+<<<<<<< HEAD
             const rating = document.createElement("span");
             rating.className = "offer-service-rating";
             rating.textContent = offer.review_count
@@ -567,6 +568,9 @@
                 comment.textContent = `“${review.comment}” — ${review.reviewer}`;
                 copy.append(comment);
             });
+=======
+            copy.append(serviceName, sellerName);
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
             const price = document.createElement("strong");
             price.textContent = money(Number(offer.price));
             item.append(imageWrap, copy, price);

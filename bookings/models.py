@@ -4,7 +4,11 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
 
+<<<<<<< HEAD
 from admin_panel.models import Event, Service, Seller
+=======
+from dashboard.models import Event, Service, Seller
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from packages.models import CatalogPackage, EventPackage
 
 
@@ -295,6 +299,7 @@ class PackageReview(models.Model):
         return f"{self.package.title} — {self.rating}/5"
 
 
+<<<<<<< HEAD
 class EventReview(models.Model):
     event = models.ForeignKey(
         Event,
@@ -365,6 +370,8 @@ class ServiceReview(models.Model):
         return f"{self.service.name} — {self.rating}/5"
 
 
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 class BookingSellerDecision(models.Model):
     class Status(models.TextChoices):
         PENDING = "PENDING", "Pending"

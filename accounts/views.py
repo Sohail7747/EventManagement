@@ -11,25 +11,44 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+<<<<<<< HEAD
 
 
 
+=======
+from dashboard.serializers import RegistrationSerializer
+
+
+# Browser logout
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 @require_POST
 def logout_view(request):
     django_logout(request)
     return redirect("home")
 
 
+<<<<<<< HEAD
 
+=======
+# Login page
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 def login_page(request):
     return render(request, "dashboard/login.html")
 
 
+<<<<<<< HEAD
 
+=======
+# Registration page
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 def register_page(request):
     return render(request, "dashboard/register.html")
 
 
+<<<<<<< HEAD
+=======
+# Public registration options
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def registration_options_api(request):
@@ -38,13 +57,21 @@ def registration_options_api(request):
     })
 
 
+<<<<<<< HEAD
 
+=======
+# Register a new account
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def register_api(request):
     requested_role = request.data.get("role", "")
 
+<<<<<<< HEAD
     
+=======
+    # Public users cannot create sub-admin accounts.
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     if requested_role == "SUB_ADMIN":
         if not request.user.is_authenticated or not request.user.is_staff:
             return Response(
@@ -86,7 +113,11 @@ def register_api(request):
     )
 
 
+<<<<<<< HEAD
 
+=======
+# Login API
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def login_api(request):
@@ -107,6 +138,10 @@ def login_api(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+<<<<<<< HEAD
+=======
+    # Find the account by email.
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     account = User.objects.filter(email__iexact=email).first()
 
     if account is None:
@@ -115,6 +150,10 @@ def login_api(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
+<<<<<<< HEAD
+=======
+    # Authenticate with the account's actual username.
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     user = authenticate(
         request,
         username=account.username,
@@ -127,6 +166,10 @@ def login_api(request):
             status=status.HTTP_401_UNAUTHORIZED
         )
 
+<<<<<<< HEAD
+=======
+    # Determine the role before creating a browser session.
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     if user.is_superuser:
         role = "ADMIN"
     else:
@@ -140,6 +183,10 @@ def login_api(request):
 
         role = profile.role
 
+<<<<<<< HEAD
+=======
+    # Choose a destination for the account.
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     if user.is_superuser or role == "SUB_ADMIN":
         redirect_url = "/admin-dashboard/"
     elif role == "SELLER":
@@ -152,8 +199,15 @@ def login_api(request):
             status=status.HTTP_403_FORBIDDEN
         )
 
+<<<<<<< HEAD
     django_login(request, user)
 
+=======
+    # Create the Django browser session after validation.
+    django_login(request, user)
+
+    # Create or reuse the API token.
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     token, _ = Token.objects.get_or_create(user=user)
 
     return Response(
@@ -176,9 +230,17 @@ def login_api(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout_api(request):
+<<<<<<< HEAD
     if request.auth and hasattr(request.auth, "delete"):
         request.auth.delete()
 
+=======
+    # Invalidate the API token, if token authentication was used.
+    if request.auth and hasattr(request.auth, "delete"):
+        request.auth.delete()
+
+    # End the Django browser session as well.
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     django_logout(request)
 
     return Response(

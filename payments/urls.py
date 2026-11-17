@@ -2,6 +2,10 @@ from django.urls import path
 
 from . import views
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 urlpatterns = [
     path(
         "packages/<int:package_id>/book/",

@@ -26,6 +26,7 @@
     box-shadow: 0 8px 28px rgba(39, 40, 32, 0.045);
   }
 
+<<<<<<< HEAD
   .package-detail-layout {
     display: grid;
 <<<<<<< HEAD
@@ -42,6 +43,8 @@
     min-width: 0;
   }
 
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
   .package-service-image {
     width: 100%;
     height: 190px;
@@ -49,19 +52,28 @@
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
   .package-detail-summary {
     position: sticky;
     top: 100px;
   }
 
   @media (max-width: 991.98px) {
+<<<<<<< HEAD
     .package-detail-layout {
       grid-template-columns: minmax(0, 1fr);
     }
 
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     .package-detail-summary {
       position: static;
     }
   }
+<<<<<<< HEAD
 >>>>>>> acb5f62 (Third commit)
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01

@@ -39,7 +39,15 @@ EventSphere{% endblock %} {% block content %}
             <span class="text-warning" aria-label="Average rating"
               >{{ package.rating_average|floatformat:1 }} ★</span
             >
+<<<<<<< HEAD
               {% else %}
+=======
+            <span class="small text-white-50"
+              >({{ package.review_count }} review{{
+              package.review_count|pluralize }})</span
+            >
+            {% else %}
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
             <span class="small text-white-50">Not yet reviewed</span>
             {% endif %}
           </div>
@@ -58,8 +66,13 @@ EventSphere{% endblock %} {% block content %}
       {% include "home/_package_favourite_button.html" %}
     </div>
 
+<<<<<<< HEAD
     <div class="package-detail-layout">
       <div class="package-detail-main">
+=======
+    <div class="row g-4 align-items-start">
+      <div class="col-lg-8">
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
         <section class="package-detail-card p-4 p-md-5 mb-4">
           <div
             class="d-flex justify-content-between align-items-start gap-3 mb-4"
@@ -77,7 +90,11 @@ EventSphere{% endblock %} {% block content %}
 
           <div class="row g-3">
             {% for item in package.package_items.all %}
+<<<<<<< HEAD
             <div class="col-md-4">
+=======
+            <div class="col-md-6">
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
               <article class="h-100 rounded-4 border overflow-hidden">
                 {% if item.service.image %}
                 <img
@@ -110,7 +127,10 @@ EventSphere{% endblock %} {% block content %}
                     {{ item.service.seller.business_name }}
                   </span>
                   {% endif %}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
                 </div>
               </article>
             </div>
@@ -124,9 +144,63 @@ EventSphere{% endblock %} {% block content %}
           </div>
         </section>
 
+<<<<<<< HEAD
       </div>
 
       <div class="package-detail-booking">
+=======
+        <section
+          class="package-detail-card p-4 p-md-5 mb-4"
+          aria-labelledby="package-reviews-heading"
+        >
+          <div
+            class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"
+          >
+            <div>
+              <span class="text-uppercase small text-secondary fw-semibold"
+                >Verified customers</span
+              >
+              <h2 class="h3 mt-2 mb-0" id="package-reviews-heading">
+                Reviews &amp; ratings
+              </h2>
+            </div>
+            {% if package.rating_average %}
+            <span class="badge rounded-pill text-bg-warning fs-6"
+              >{{ package.rating_average|floatformat:1 }} ★</span
+            >
+            {% endif %}
+          </div>
+          {% for review in reviews %}
+          <article class="border-top py-3">
+            <div class="d-flex justify-content-between gap-3">
+              <strong
+                >{{ review.user.get_full_name|default:review.user.username
+                }}</strong
+              >
+              <span
+                class="text-warning"
+                aria-label="{{ review.rating }} out of 5 stars"
+                >{{ review.rating }} ★</span
+              >
+            </div>
+            <p class="small text-secondary mt-1 mb-1">
+              {{ review.created_at|date:"d M Y" }} · Verified booking
+            </p>
+            {% if review.comment %}
+            <p class="mb-0">{{ review.comment|linebreaksbr }}</p>
+            {% endif %}
+          </article>
+          {% empty %}
+          <p class="text-secondary mb-0">
+            No reviews yet. Complete a booking to be the first to review this
+            package.
+          </p>
+          {% endfor %}
+        </section>
+      </div>
+
+      <div class="col-lg-4">
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
         <aside class="package-detail-card package-detail-summary p-4">
           <span class="text-uppercase small text-secondary fw-semibold">
             Package provider
@@ -179,6 +253,7 @@ EventSphere{% endblock %} {% block content %}
             Back to all packages
           </a>
         </aside>
+<<<<<<< HEAD
 
         <section
           class="package-detail-card p-4 p-md-5 mt-4"
@@ -224,6 +299,8 @@ EventSphere{% endblock %} {% block content %}
           </p>
           {% endfor %}
         </section>
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
       </div>
     </div>
   </div>

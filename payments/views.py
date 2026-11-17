@@ -23,8 +23,11 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
+<<<<<<< HEAD
 from admin_panel.analytics import monthly_amounts
 from admin_panel.models import Profile, Seller
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from bookings.forms import PackageBookingForm
 from bookings.models import (
     Booking,
@@ -1367,6 +1370,7 @@ def admin_complete_booking(request, booking_id):
 @admin_required
 def admin_payments_page(request):
     if request.method == "POST":
+<<<<<<< HEAD
         action = request.POST.get("action")
         if action == "pay_available":
             method = request.POST.get("payment_method", "").strip()
@@ -1424,11 +1428,17 @@ def admin_payments_page(request):
                     )
             return redirect("admin-payments")
 
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
         with transaction.atomic():
             payout = get_object_or_404(
                 PayoutRequest.objects.select_for_update(),
                 pk=request.POST.get("payout_id"),
             )
+<<<<<<< HEAD
+=======
+            action = request.POST.get("action")
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
             note = request.POST.get("admin_note", "").strip()
             if payout.status != PayoutRequest.Status.REQUESTED:
                 messages.error(
@@ -1486,6 +1496,7 @@ def admin_payments_page(request):
         .order_by("status", "-created_at")
     )
     earnings = SellerEarning.objects.all()
+<<<<<<< HEAD
     available_seller_payouts = {}
     available_earnings = (
         SellerEarning.objects.filter(
@@ -1509,6 +1520,8 @@ def admin_payments_page(request):
         seller_payout["amount"] += earning.seller_amount
         seller_payout["earning_count"] += 1
 
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     gross_earnings = earnings.annotate(
         gross_amount=F("seller_amount") + F("commission_amount")
     )
@@ -1519,7 +1532,10 @@ def admin_payments_page(request):
     )
     context = {
         "payout_requests": payout_requests,
+<<<<<<< HEAD
         "available_seller_payouts": available_seller_payouts.values(),
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
         "payment_attempts": payment_attempts,
         "gross_payment_total": gross_earnings.aggregate(
             total=Sum("gross_amount")

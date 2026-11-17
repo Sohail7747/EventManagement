@@ -484,6 +484,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+<<<<<<< HEAD
   .offer-service-rating,
   .offer-service-review {
     display: block;
@@ -497,6 +498,8 @@
     color: var(--finder-muted);
     font-style: italic;
   }
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
   .offer-total {
     display: flex;
     justify-content: space-between;

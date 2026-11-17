@@ -12,11 +12,11 @@
 <header class="hero-section" id="home" data-hero-slider>
     <div class="hero-slides" aria-hidden="true">
         <div class="hero-slide is-active"
-             style="--hero-image: url('{% static 'home/images/hero-wedding.webp' %}')"></div>
+            style="--hero-image: url('{% static 'home/images/hero-wedding.webp' %}')"></div>
         <div class="hero-slide"
-             style="--hero-image: url('{% static 'home/images/hero-celebration.webp' %}')"></div>
+            style="--hero-image: url('{% static 'home/images/hero-celebration.webp' %}')"></div>
         <div class="hero-slide"
-             style="--hero-image: url('{% static 'home/images/hero-event.webp' %}')"></div>
+            style="--hero-image: url('{% static 'home/images/hero-event.webp' %}')"></div>
     </div>
     <div class="hero-overlay"></div>
 
@@ -259,7 +259,7 @@
         {% if events %}
             <div class="home-carousel" data-home-carousel>
                 <div class="home-carousel-track" id="home-events-track" role="list"
-                     aria-label="Featured events" tabindex="0">
+                    aria-label="Featured events" tabindex="0">
                     {% for event in events %}
                     <div class="home-carousel-item" role="listitem">
                         <a href="{% url 'public-events' %}" class="d-block h-100 text-decoration-none text-reset" title="Explore {{ event.title }}">
@@ -267,7 +267,7 @@
                                 <div class="listing-image">
                                     {% if event.image %}
                                         <img src="{{ event.image.url }}"
-                                             alt="{{ event.title }}" loading="lazy">
+                                        alt="{{ event.title }}" loading="lazy">
                                     {% else %}
                                         <div class="image-placeholder event-placeholder">
                                             <i class="bi bi-calendar-heart"></i>
@@ -346,7 +346,7 @@
         {% if services %}
             <div class="home-carousel" data-home-carousel>
                 <div class="home-carousel-track" id="home-services-track" role="list"
-                     aria-label="Featured services" tabindex="0">
+                    aria-label="Featured services" tabindex="0">
                     {% for service in services %}
                     <div class="home-carousel-item" role="listitem">
                         <a href="{% url 'public-services' %}" class="d-block h-100 text-decoration-none text-reset" title="Explore {{ service.name }}">
@@ -354,7 +354,7 @@
                                 <div class="service-image">
                                     {% if service.image %}
                                         <img src="{{ service.image.url }}"
-                                             alt="{{ service.name }}" loading="lazy">
+                                            alt="{{ service.name }}" loading="lazy">
                                     {% else %}
                                         <div class="image-placeholder service-placeholder">
                                             <i class="bi bi-stars"></i>
@@ -429,14 +429,14 @@
         {% if packages %}
             <div class="home-carousel" data-home-carousel>
                 <div class="home-carousel-track" id="home-packages-track" role="list"
-                     aria-label="Featured packages" tabindex="0">
+                    aria-label="Featured packages" tabindex="0">
                     {% for package in packages %}
                     <div class="home-carousel-item" role="listitem">
                         <article class="package-card">
                             <div class="package-image">
                                 {% if package.event.image %}
                                     <img src="{{ package.event.image.url }}"
-                                         alt="{{ package.title }}" loading="lazy">
+                                        alt="{{ package.title }}" loading="lazy">
                                 {% else %}
                                     <div class="image-placeholder package-placeholder">
                                         <i class="bi bi-gift"></i>
@@ -467,8 +467,8 @@
                                     </div>
 
                                     <a href="{% url 'public-package-detail' package.id %}"
-                                       class="package-link"
-                                       aria-label="Book {{ package.title }}">
+                                    class="package-link"
+                                    aria-label="Book {{ package.title }}">
                                         <i class="bi bi-arrow-up-right"></i>
                                     </a>
                                 </div>

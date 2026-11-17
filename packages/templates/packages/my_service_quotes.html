@@ -1,0 +1,77 @@
+{% extends "bookings/user_base.html" %}
+
+{% block title %}My Quote Requests | EventSphere{% endblock %}
+
+{% block user_content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+    <div>
+        <h1 class="page-heading">My quote requests</h1>
+        <p class="page-description">Follow seller replies for services that are not currently listed.</p>
+    </div>
+    <a class="btn btn-gold" href="{% url 'package-selection' %}">Find a package</a>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}" role="alert">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<div class="row g-3">
+    {% for quote_request in quote_requests %}
+        <div class="col-12">
+            <article class="user-card">
+                <div class="d-flex flex-wrap justify-content-between gap-3">
+                    <div>
+                        <span class="small text-secondary">Requested {{ quote_request.created_at|date:"d M Y" }}</span>
+                        <h2 class="h5 mt-1 mb-1">{{ quote_request.service_name }}</h2>
+                        {% if quote_request.event_date %}
+                            <span class="small text-secondary">Event date: {{ quote_request.event_date|date:"d M Y" }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="badge text-bg-light align-self-start">
+                        {{ quote_request.quotes.count }} seller{{ quote_request.quotes.count|pluralize }} contacted
+                    </span>
+                </div>
+                {% if quote_request.details %}
+                    <p class="small text-secondary mt-3 mb-0">{{ quote_request.details|linebreaksbr }}</p>
+                {% endif %}
+                <hr>
+                <h3 class="h6 mb-3">Seller responses</h3>
+                <div class="row g-2">
+                    {% for quote in quote_request.quotes.all %}
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded-3 h-100">
+                                <div class="d-flex justify-content-between gap-2">
+                                    <strong>{{ quote.seller.business_name }}</strong>
+                                    <span class="small text-secondary">{{ quote.get_status_display }}</span>
+                                </div>
+                                {% if quote.status == "QUOTED" %}
+                                    <div class="fs-5 fw-bold mt-2">₹{{ quote.quoted_price|floatformat:2 }}</div>
+                                {% endif %}
+                                {% if quote.message %}
+                                    <p class="small text-secondary mt-2 mb-0">{{ quote.message|linebreaksbr }}</p>
+                                {% endif %}
+                                {% if quote.responded_at %}
+                                    <span class="small text-secondary d-block mt-2">Updated {{ quote.responded_at|date:"d M Y, h:i A" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12 text-secondary small">Your request is waiting for seller responses.</div>
+                    {% endfor %}
+                </div>
+            </article>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="user-card empty-state">
+                <i class="bi bi-chat-square-text"></i>
+                <h2 class="h5">No quote requests yet</h2>
+                <p>If a service is not listed, request quotes from sellers on the package finder.</p>
+                <a class="btn btn-gold" href="{% url 'package-selection' %}">Find services</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

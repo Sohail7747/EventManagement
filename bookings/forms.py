@@ -1,7 +1,11 @@
 from django import forms
 from django.utils import timezone
 
+<<<<<<< HEAD
 from admin_panel.models import Profile
+=======
+from dashboard.models import Profile
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from .availability import (
     BookingUnavailableError,
     assert_dates_available,

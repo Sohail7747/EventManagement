@@ -57,7 +57,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "home",
+<<<<<<< HEAD
     "admin_panel.apps.DashboardConfig",
+=======
+    "dashboard",
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     "accounts",
     "bookings",
     "sellers",

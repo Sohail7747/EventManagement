@@ -1,15 +1,23 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Avg, Count, Q
+<<<<<<< HEAD
 from django.db.models import Prefetch
 from django.core.paginator import Paginator
 
 from bookings.models import EventReview, Favourite, ServiceReview
 from admin_panel.models import Event, Profile, Service, StaticPage
+=======
+from django.core.paginator import Paginator
+
+from bookings.models import Favourite
+from dashboard.models import Event, Profile, Service, StaticPage
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from packages.models import CatalogPackage
 from .models import ContactMessage
 
 
+<<<<<<< HEAD
 def _services_with_reviews():
     return (
         Service.objects.filter(is_deleted=False)
@@ -48,6 +56,8 @@ def _events_with_reviews():
     )
 
 
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 def _package_favourite_context(user, packages):
     if not user.is_authenticated:
         return False, set()
@@ -66,9 +76,25 @@ def _package_favourite_context(user, packages):
 
 
 def home_page(request):
+<<<<<<< HEAD
     events = _events_with_reviews().order_by("-created_at")[:10]
 
     services = _services_with_reviews().order_by("-created_at")[:10]
+=======
+    events = (
+        Event.objects
+        .filter(is_deleted=False)
+        .select_related("seller")
+        .order_by("-created_at")[:10]
+    )
+
+    services = (
+        Service.objects
+        .filter(is_deleted=False)
+        .select_related("seller")
+        .order_by("-created_at")[:10]
+    )
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 
     packages = list(
         CatalogPackage.objects
@@ -97,13 +123,31 @@ def home_page(request):
 
 
 def events_page(request):
+<<<<<<< HEAD
     events = _events_with_reviews().order_by("-created_at")
+=======
+    events = (
+        Event.objects
+        .filter(is_deleted=False)
+        .select_related("seller")
+        .order_by("-created_at")
+    )
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 
     return render(request, "home/events.html", {"events": events})
 
 
 def services_page(request):
+<<<<<<< HEAD
     services = _services_with_reviews().order_by("-created_at")
+=======
+    services = (
+        Service.objects
+        .filter(is_deleted=False)
+        .select_related("seller")
+        .order_by("-created_at")
+    )
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 
     return render(request, "home/services.html", {"services": services})
 

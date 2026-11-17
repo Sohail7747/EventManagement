@@ -6,7 +6,11 @@
 {% block content %}
 <div class="mb-4">
     <h1 class="h3">Transactions and seller payouts</h1>
+<<<<<<< HEAD
     <p class="text-secondary">Review customer payments and commission, pay sellers for their allocated share after admin approval of event completion, and process seller payout requests.</p>
+=======
+    <p class="text-secondary">Review customer payment transactions, platform commission, and seller payout transfers. Sellers can request eligible earnings after the customer confirms event completion.</p>
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 </div>
 
 <div class="stats-grid mb-4">
@@ -95,6 +99,7 @@
     </div>
 </section>
 
+<<<<<<< HEAD
 <section class="panel mb-4">
     <div class="panel-header">
         <div>
@@ -143,15 +148,25 @@
     <div class="table-responsive">
         <table class="table align-middle mb-0">
             <thead><tr><th>Seller</th><th>Booking(s)</th><th>Amount</th><th>Requested / processed</th><th>Status / transfer details</th><th>Action</th></tr></thead>
+=======
+<section class="panel">
+    <div class="panel-header"><h2>Seller payout transactions</h2></div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Seller</th><th>Amount</th><th>Requested / processed</th><th>Status / transfer details</th><th>Action</th></tr></thead>
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
             <tbody>
                 {% for payout in payout_requests %}
                     <tr>
                         <td>{{ payout.seller.business_name }}<div class="small text-secondary">{{ payout.seller.user.email }}</div></td>
+<<<<<<< HEAD
                         <td>
                             {% for earning in payout.earnings.all %}
                                 <span class="d-block">Booking #{{ earning.booking_id }}</span>
                             {% empty %}—{% endfor %}
                         </td>
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
                         <td>₹{{ payout.amount|floatformat:2 }}</td>
                         <td>{{ payout.created_at|date:"d M Y H:i" }}
                             {% if payout.processed_at %}<span class="d-block small text-secondary">Processed {{ payout.processed_at|date:"d M Y H:i" }}</span>{% endif %}
@@ -180,7 +195,11 @@
                         </td>
                     </tr>
                 {% empty %}
+<<<<<<< HEAD
                     <tr><td colspan="6" class="text-center text-secondary py-4">No payout transactions yet.</td></tr>
+=======
+                    <tr><td colspan="5" class="text-center text-secondary py-4">No payout requests yet.</td></tr>
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
                 {% endfor %}
             </tbody>
         </table>

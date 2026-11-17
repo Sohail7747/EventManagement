@@ -1,8 +1,14 @@
 from django import forms
 from django.db.models import Q
+<<<<<<< HEAD
 from admin_panel.models import Event
 
 from admin_panel.models import Event, Service
+=======
+from dashboard.models import Event
+
+from dashboard.models import Event, Service
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from packages.models import CatalogPackage
 
 class EventForm(forms.ModelForm):

@@ -12,11 +12,18 @@ from bookings.models import (
     Booking,
     BookingSellerDecision,
     PackageReview,
+<<<<<<< HEAD
     ServiceReview,
     SellerUnavailableDate,
     ensure_booking_seller_decisions,
 )
 from admin_panel.models import Event, Profile, Seller, Service
+=======
+    SellerUnavailableDate,
+    ensure_booking_seller_decisions,
+)
+from dashboard.models import Event, Profile, Seller, Service
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from payments.models import PackagePaymentAttempt
 from payments.settlements import create_booking_earnings
 from bookings.availability import seller_ids_for_item
@@ -463,6 +470,7 @@ class CustomPackageBuilderTests(TestCase):
             302,
         )
         self.assertEqual(PackageReview.objects.filter(booking=booking).count(), 1)
+<<<<<<< HEAD
         self.assertEqual(
             list(
                 ServiceReview.objects.filter(booking=booking).values_list(
@@ -545,6 +553,8 @@ class CustomPackageBuilderTests(TestCase):
             reviewed_offering["reviews"][0]["comment"],
             "Wonderful service from every seller.",
         )
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 
     def test_booking_must_be_completed_before_review_submission(self):
         booking = Booking.objects.create(

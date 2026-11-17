@@ -1,7 +1,11 @@
 from django import forms
 from django.db import transaction
 
+<<<<<<< HEAD
 from admin_panel.models import Event, Seller, Service
+=======
+from dashboard.models import Event, Seller, Service
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from .models import CatalogPackage, CatalogPackageItem
 
 

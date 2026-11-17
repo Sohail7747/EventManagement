@@ -1,9 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 
+<<<<<<< HEAD
 from admin_panel.models import Seller, Event, Service
 from bookings.models import Booking, BookingSellerDecision
 from admin_panel.analytics import monthly_counts, monthly_amounts
+=======
+from dashboard.models import Seller, Event, Service
+from bookings.models import Booking, BookingSellerDecision
+from dashboard.analytics import monthly_counts, monthly_amounts
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from packages.models import CatalogPackage, ServiceQuote
 from django.shortcuts import get_object_or_404
 from django.contrib import messages
@@ -17,7 +23,10 @@ from django.db.models import Prefetch, Q, Sum
 from packages.models import  CatalogPackageItem
 from .forms import SellerCatalogPackageForm
 from payments.models import SellerEarning
+<<<<<<< HEAD
 from .forms import EventForm
+=======
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 
 
 
@@ -179,6 +188,61 @@ def seller_dashboard(request):
     )
 
 
+<<<<<<< HEAD
+=======
+@login_required(login_url="/accounts/login/")
+@user_passes_test(is_seller, login_url="/accounts/login/")
+def seller_service_quote_response(request, quote_id):
+    if request.method != "POST":
+        return redirect("seller-dashboard")
+
+    seller = get_object_or_404(Seller, user=request.user)
+    quote = get_object_or_404(ServiceQuote, pk=quote_id, seller=seller)
+    if quote.status != ServiceQuote.Status.PENDING:
+        messages.error(request, "This quote request has already been answered.")
+        return redirect("seller-dashboard")
+
+    action = request.POST.get("action", "")
+    if action == "unavailable":
+        quote.status = ServiceQuote.Status.UNAVAILABLE
+        quote.message = request.POST.get("message", "").strip()[:2000]
+        quote.responded_at = timezone.now()
+        quote.save(update_fields=["status", "message", "responded_at"])
+        messages.success(request, "You marked this service request as unavailable.")
+        return redirect("seller-dashboard")
+
+    if action != "quote":
+        messages.error(request, "Choose whether to provide a quote or mark the request unavailable.")
+        return redirect("seller-dashboard")
+
+    try:
+        quoted_price = Decimal(request.POST.get("quoted_price", "").strip())
+    except (InvalidOperation, AttributeError):
+        messages.error(request, "Enter a valid quote amount.")
+        return redirect("seller-dashboard")
+    if (
+        not quoted_price.is_finite()
+        or quoted_price <= 0
+        or quoted_price > Decimal("99999999.99")
+        or quoted_price.as_tuple().exponent < -2
+    ):
+        messages.error(
+            request,
+            "The quote must be greater than zero and have at most two decimal places.",
+        )
+        return redirect("seller-dashboard")
+
+    quote.status = ServiceQuote.Status.QUOTED
+    quote.quoted_price = quoted_price
+    quote.message = request.POST.get("message", "").strip()[:2000]
+    quote.responded_at = timezone.now()
+    quote.save(
+        update_fields=["status", "quoted_price", "message", "responded_at"]
+    )
+    messages.success(request, "Your quote has been sent to the customer.")
+    return redirect("seller-dashboard")
+
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 
 @login_required(login_url="/accounts/login/")
 @user_passes_test(is_seller, login_url="/accounts/login/")
@@ -202,6 +266,98 @@ def seller_events(request):
         context
     )
 
+<<<<<<< HEAD
+=======
+
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from .forms import EventForm
+
+
+@login_required(login_url="/accounts/login/")
+@user_passes_test(is_seller, login_url="/accounts/login/")
+def seller_create_event(request):
+    seller = Seller.objects.filter(user=request.user).first()
+
+    if seller is None:
+        return render(
+            request,
+            "sellers/seller_create_event.html",
+            {
+                "form": EventForm(),
+                "error": "Your seller profile was not found.",
+            },
+        )
+
+    if request.method == "POST":
+        form = EventForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            event = form.save(commit=False)
+            event.seller = seller
+            event.save()
+
+            messages.success(
+                request,
+                "Your event was created successfully!"
+            )
+            return redirect("seller-events")
+    else:
+        form = EventForm()
+
+    return render(
+        request,
+        "sellers/seller_create_event.html",
+        {"form": form},
+    )
+
+
+
+@login_required(login_url="/accounts/login/")
+@user_passes_test(is_seller, login_url="/accounts/login/")
+def seller_edit_event(request, event_id):
+    seller = Seller.objects.filter(user=request.user).first()
+
+    if seller is None:
+        return redirect("seller-events")
+
+    event = get_object_or_404(
+        Event,
+        id=event_id,
+        seller=seller
+    )
+
+    if request.method == "POST":
+        form = EventForm(
+            request.POST,
+            request.FILES,
+            instance=event
+        )
+
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request,
+                "Event updated successfully!"
+            )
+            return redirect("seller-events")
+    else:
+        form = EventForm(instance=event)
+
+    return render(
+        request,
+        "sellers/seller_edit_event.html",
+        {
+            "form": form,
+            "event": event,
+        }
+    )
+
+
+
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 @login_required(login_url="/accounts/login/")
 @user_passes_test(is_seller, login_url="/accounts/login/")
 def seller_view_event(request, event_id):
@@ -222,6 +378,46 @@ def seller_view_event(request, event_id):
         {"event": event}
     )
 
+<<<<<<< HEAD
+=======
+from django.db import transaction
+
+@login_required
+@user_passes_test(lambda u: hasattr(u, "seller_profile"))
+def seller_delete_event(request, event_id):
+    if request.method != "POST":
+        return redirect("seller-events")
+
+    seller = get_object_or_404(Seller, user=request.user)
+    event = get_object_or_404(
+        Event,
+        id=event_id,
+        seller=seller
+    )
+
+    image_name = event.image.name if event.image else None
+
+    try:
+        with transaction.atomic():
+            event.delete()
+
+        # Delete the image only after the database deletion succeeds.
+        if image_name:
+            event.image.storage.delete(image_name)
+
+        messages.success(request, "Event deleted successfully!")
+
+    except Exception:
+        messages.error(
+            request,
+            "Event could not be deleted because related records may depend on it."
+        )
+
+    return redirect("seller-events")
+
+
+
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from .forms import ServiceForm
 
 
@@ -243,6 +439,142 @@ def seller_services(request):
         {"services": services},
     )
 
+<<<<<<< HEAD
+=======
+
+@login_required(login_url="/accounts/login/")
+@user_passes_test(is_seller, login_url="/accounts/login/")
+def seller_create_service(request):
+    seller = Seller.objects.filter(user=request.user).first()
+
+    if seller is None:
+        messages.error(request, "Your seller profile was not found.")
+        return redirect("seller-services")
+
+    if request.method == "POST":
+        form = ServiceForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            service = form.save(commit=False)
+            service.seller = seller
+            service.save()
+
+            messages.success(
+                request,
+                "Service created successfully!",
+            )
+            return redirect("seller-services")
+    else:
+        form = ServiceForm()
+
+    return render(
+        request,
+        "sellers/seller_create_service.html",
+        {"form": form},
+    )
+
+
+@login_required(login_url="/accounts/login/")
+@user_passes_test(is_seller, login_url="/accounts/login/")
+def seller_view_service(request, service_id):
+    seller = Seller.objects.filter(user=request.user).first()
+
+    if seller is None:
+        return redirect("seller-services")
+
+    service = get_object_or_404(
+        Service,
+        id=service_id,
+        seller=seller,
+    )
+
+    return render(
+        request,
+        "sellers/seller_view_service.html",
+        {"service": service},
+    )
+
+
+@login_required(login_url="/accounts/login/")
+@user_passes_test(is_seller, login_url="/accounts/login/")
+def seller_edit_service(request, service_id):
+    seller = Seller.objects.filter(user=request.user).first()
+
+    if seller is None:
+        return redirect("seller-services")
+
+    service = get_object_or_404(
+        Service,
+        id=service_id,
+        seller=seller,
+    )
+
+    if request.method == "POST":
+        form = ServiceForm(
+            request.POST,
+            request.FILES,
+            instance=service,
+        )
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(
+                request,
+                "Service updated successfully!",
+            )
+            return redirect("seller-services")
+    else:
+        form = ServiceForm(instance=service)
+
+    return render(
+        request,
+        "sellers/seller_edit_service.html",
+        {
+            "form": form,
+            "service": service,
+        },
+    )
+
+
+@login_required(login_url="/accounts/login/")
+@user_passes_test(is_seller, login_url="/accounts/login/")
+def seller_delete_service(request, service_id):
+    if request.method != "POST":
+        return redirect("seller-services")
+
+    seller = Seller.objects.filter(user=request.user).first()
+
+    if seller is None:
+        return redirect("seller-services")
+
+    service = get_object_or_404(
+        Service,
+        id=service_id,
+        seller=seller,
+    )
+
+    image_name = service.image.name if service.image else None
+
+    try:
+        service.delete()
+
+        if image_name:
+            service.image.storage.delete(image_name)
+
+        messages.success(request, "Service deleted successfully!")
+
+    except Exception:
+        messages.error(
+            request,
+            "Unable to delete this service. Please try again.",
+        )
+
+    return redirect("seller-services")
+
+
+
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 @login_required(login_url="/accounts/login/")
 @user_passes_test(is_seller, login_url="/accounts/login/")
 def seller_packages(request):

@@ -2,7 +2,11 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
 
+<<<<<<< HEAD
 from admin_panel.models import Event, Profile, Seller, Service
+=======
+from dashboard.models import Event, Profile, Seller, Service
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
 from packages.models import CatalogPackage, CatalogPackageItem
 
 

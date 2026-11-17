@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
+<<<<<<< HEAD
 from bookings.models import Booking, EventReview, Favourite, ServiceReview
 from admin_panel.models import Event, Profile, Seller, Service
 from packages.models import CatalogPackage, CatalogPackageItem, EventPackage
@@ -109,6 +110,14 @@ class HomeAuthenticationTests(TestCase):
                 self.assertContains(response, "Excellent custom package service.")
                 self.assertContains(response, "5.0 ★")
 
+=======
+from bookings.models import Favourite
+from dashboard.models import Event, Profile, Seller, Service
+from packages.models import CatalogPackage, CatalogPackageItem
+
+
+class HomeAuthenticationTests(TestCase):
+>>>>>>> 94851330fda38d03375e41cc7ee79f674bd05b01
     def test_homepage_is_public_and_shows_login_actions(self):
         response = self.client.get(reverse("home"))
 
